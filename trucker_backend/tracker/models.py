@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django_ulid.models import ULIDField, default
 import uuid
+import ulid
 
 class UserManager(BaseUserManager):
 
@@ -43,6 +44,9 @@ class Driver(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=255)
     phone_number = models.IntegerField(null=True)
     password = models.CharField(max_length=255)
+    total_cycle_hours = models.FloatField(default=70.0)  # 70hrs/8days
+    current_cycle_used = models.FloatField(default=0.0)
+    driver_number = models.CharField(max_length=255, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -52,8 +56,89 @@ class Driver(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['first_name', 'last_name']
     objects = UserManager()
 
-    # class Meta:
-    #     db_table = 'customuser'
-
     def __str__(self):
         return self.email
+
+class Trip(models.Model):
+    id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
+    home_operating_center = models.CharField(max_length=255)
+    current_location = models.CharField(max_length=255)
+    pickup_location = models.CharField(max_length=255)
+    dropoff_location = models.CharField(max_length=255)
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField(null=True)
+    status = models.CharField(max_length=20, choices=[('planned', 'Planned'), ('in_progress', 'In Progress'), ('completed', 'Completed')])
+    vehicle_no = models.IntegerField(default=0)
+    trailer_no = models.CharField(max_length=25)#A list is more suitable since there may be multiple trialers
+
+class LogSheet(models.Model):
+    id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
+    # co_driver = models.ForeignKey(Driver, on_delete=models.SET_NULL)
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    shipper = models.CharField(max_length=255)
+    commodity = models.CharField(max_length=255)
+    total_mileage = models.IntegerField(default=0)
+    date = models.DateField(auto_now_add=True)
+
+from django.core.validators import MaxValueValidator, MinValueValidator
+class LogEntry(models.Model):
+    id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    logsheet = models.ForeignKey(LogSheet, on_delete=models.CASCADE)
+
+    lat = models.FloatField([MinValueValidator(-90), MaxValueValidator(90)])
+    long = models.FloatField(validators=[MinValueValidator(-180), MaxValueValidator(180)])
+    location = models.CharField(max_length=255)
+
+    date = models.DateField(auto_now_add=True)
+    start_time = models.TimeField(auto_now_add=True)
+    end_time = models.TimeField(null=True, blank=True)
+    duration = models.FloatField(default=0.0)  # in hours
+
+    duty_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('off_duty', 'Off Duty'),
+            ('sleeper', 'Sleeper'),
+            ('driving', 'Driving'),
+            ('on_duty', 'On Duty')
+        ]
+    )
+    point_type = models.CharField(max_length=20,
+                                  choices=[
+                                      ('start', 'Start'),
+                                      ('pickup', 'Pickup'),
+                                      ('dropoff', 'Dropoff'),
+                                      ('fuel', 'Fuel'),
+                                      ('rest', 'Rest'),
+                                      ('scale', 'Scale')
+                                  ])
+
+
+# pip install psycopg2-binary django gdal
+
+# INSTALLED_APPS = [
+#     ...
+#     'django.contrib.gis',
+#     ...
+# ]
+
+
+# from django.contrib.gis.db import models
+
+# class Place(models.Model):
+#     name = models.CharField(max_length=100)
+#     location = models.PointField()  # Stores longitude and latitude
+
+#     def __str__(self):
+#         return self.name
+    
+# from django.contrib.gis.geos import Point
+
+# place = Place(
+#     name="Example Location",
+#     location=Point(-73.935242, 40.730610)  # (longitude, latitude)
+# )
+# place.save()
