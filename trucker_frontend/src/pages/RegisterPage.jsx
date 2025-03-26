@@ -7,7 +7,7 @@ const Register = () => {
   return (
     <div>
       <Header/>
-      <Form route="" method="register"/>
+      <Form route="register/" method="register"/>
       <Footer/>
     </div>
   )

@@ -6,7 +6,7 @@ const LoginPage = () => {
     return (
       <div>
         <Header/>
-        <LoginForm route="/" method="login"/>
+        <LoginForm route="login/" method="login"/>
         <Footer/>
       </div>
     )

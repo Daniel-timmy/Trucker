@@ -7,9 +7,10 @@ import login_img from '../assets/login.jpg';
 import { useState } from "react";
 import LoadingIndicator from './LoadingIndicator';
 import {useNavigate} from 'react-router-dom';
-
+import api from '../api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquareFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
 
 const RegisterForm = ({route, method}) => {
     const [firstName, setFirstName] = useState("");
@@ -26,18 +27,22 @@ const RegisterForm = ({route, method}) => {
     const handleSubmit = async (e) => {
         setLoading(true);
         e.preventDefault();
+        console.log(import.meta.env.VITE_API_URL)
 
         try {
             if (method === "register") {
-            const res = await api.post(route, { firstName, lastName, password, email, phoneNumber})
+            const res = await api.post(route, { first_name: firstName, last_name: lastName, 
+                password: password, email: email, phone_number: phoneNumber})
+                console.log(res)
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-            // navigate("/dashboard")
+            navigate("/")
             } else {
             const res = await api.post(route, { password, email })
+            console.log(res.data)
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-                // navigate("/dashboard")
+                navigate("/")
             }
         } catch (error) {
             alert(error)
