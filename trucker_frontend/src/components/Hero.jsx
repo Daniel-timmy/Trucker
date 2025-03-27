@@ -1,6 +1,7 @@
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import hero from "../assets/hero.jpg"
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -13,7 +14,7 @@ const Hero = () => {
          <div className="hero-text, text-center">
                     <h1>Welcome to Trucker!</h1>
                     <p>Your all-in-one platform for your logistics needs.</p>
-                    <Button variant="dark">Get Started</Button>
+                    <Button as={Link} to='/login' variant="dark">Get Started</Button>
             
                 </div>
     </Container>

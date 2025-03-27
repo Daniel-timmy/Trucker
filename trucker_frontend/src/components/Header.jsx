@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Navbar,Nav } from "react-bootstrap"
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
+import { Link } from "react-router-dom";
 import {jwtDecode} from "jwt-decode";
 
 
@@ -54,13 +55,15 @@ const Header = () => {
               
               <Nav className="me-auto, justify-content-end">
                 {isAuthorized && 
-                <Nav.Link href="#link">Dashboard</Nav.Link>}
+                <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>}
                 {isAuthorized && 
-                <Nav.Link href="#home">Log out</Nav.Link>}
+                <Nav.Link as={Link} to="/trips">Trips</Nav.Link>}
+                {isAuthorized && 
+                <Nav.Link as={Link} to="/logout">Log out</Nav.Link>}
                 {!isAuthorized && 
-                <Nav.Link href="#home">Login</Nav.Link>}
+                <Nav.Link as={Link} to="/login">Login</Nav.Link>}
                 {!isAuthorized && 
-                <Nav.Link href="#home">Sign Up</Nav.Link>}
+                <Nav.Link as={Link} to="/register">Sign Up</Nav.Link>}
               </Nav>
             </Navbar.Collapse>
         </Navbar>

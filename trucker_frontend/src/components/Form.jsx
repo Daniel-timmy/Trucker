@@ -6,7 +6,7 @@ import Col from 'react-bootstrap/Col';
 import login_img from '../assets/login.jpg';
 import { useState } from "react";
 import LoadingIndicator from './LoadingIndicator';
-import {useNavigate} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import api from '../api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquareFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
@@ -183,13 +183,13 @@ const RegisterForm = ({route, method}) => {
                                 </Col>                             
                             </Row>
                             <Form.Text className="text-white">
-                                Do you have an account already? <a href='#'>Log in.</a>
+                                Do you have an account already? <Link to="/login">Login.</Link>
                             </Form.Text>
                             <div className="d-flex justify-content-center align-items-center mt-3">
-                            {loading && <LoadingIndicator />}
-                                <Button variant="primary" type="submit">
+                            {loading ? <LoadingIndicator/> : <Button variant="primary" type="submit">
                                     {name}
-                                </Button>
+                                </Button> }
+                                
                             </div>
                             
                             <br />
@@ -259,13 +259,12 @@ const RegisterForm = ({route, method}) => {
                             </Row>
                             
                             <Form.Text className="text-white">
-                                Need an account? <a href='#'>Register.</a>
+                                Need an account? <Link to="/register">Register.</Link>
                             </Form.Text>
                             <div className="d-flex justify-content-center align-items-center mt-3">
-                            {loading && <LoadingIndicator />}
-                                <Button variant="primary" type="submit">
+                            {loading ? <LoadingIndicator/> : <Button variant="primary" type="submit">
                                     {name}
-                                </Button>
+                                </Button> }
                             </div>
                             
                             <br />

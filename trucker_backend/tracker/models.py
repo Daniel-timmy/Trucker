@@ -66,8 +66,8 @@ class Trip(models.Model):
     current_location = models.CharField(max_length=255)
     pickup_location = models.CharField(max_length=255)
     dropoff_location = models.CharField(max_length=255)
-    start_date = models.DateTimeField(auto_now_add=True)
-    end_date = models.DateTimeField(null=True)
+    start_date = models.DateField(auto_now_add=True)
+    end_date = models.DateField(null=True)
     status = models.CharField(max_length=20, choices=[('planned', 'Planned'), ('in_progress', 'In Progress'), ('completed', 'Completed')])
     vehicle_no = models.IntegerField(default=0)
     trailer_no = models.CharField(max_length=25)#A list is more suitable since there may be multiple trialers

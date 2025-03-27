@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Driver, Trip, LogSheet, LogEntry
-from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .serializers import DriverSerializer, TripSerializer, LogSheetSerializer, LogEntrySerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -16,14 +16,6 @@ class RegisterView(CreateAPIView):
     serializer_class = DriverSerializer
     queryset = Driver.objects.all()
 
-    # def post(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     driver = serializer.save()
-    #     print(driver)
-        
-    #     return Response({'data': serializer.data})
-
 
 class TripView(ListCreateAPIView):
     """
@@ -38,14 +30,31 @@ class TripView(ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
+
             serializer = self.get_serializer(data=request.data)
+            print(request.data)
+
             serializer.is_valid(raise_exception=True)
             trip = serializer.save()
             response_data = self.get_serializer(trip).data 
             return Response({'success': 'true', 'data': response_data})
         except Exception as e:
-            print(e)
+            print(str(e))
+            print('Error in TripView post method')
             return Response({'success': 'false', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TripRetrieveByStatus(ListAPIView):
+    """
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TripSerializer
+    lookup_field = 'status'
+
+
+    def get_queryset(self):
+        status = self.request.parser_context['kwargs'].get('status') 
+        print(status)
+        return Trip.objects.filter(driver=self.request.user, status=status)
 
         
 class TripModifyView(RetrieveUpdateDestroyAPIView):
@@ -57,6 +66,12 @@ class TripModifyView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'id' 
     def get_queryset(self):
         return Trip.objects.filter(driver=self.request.user)
+    
+    def patch(self, request, *args, **kwargs):
+        id = self.request.parser_context['kwargs'].get('id') 
+        todays_date = datetime.now().date()
+        # if Trip.objects.filter(id=id, status="completed", driver=self.request.user)
+        return super().patch(request, *args, **kwargs)
     
 class LogSheetListCreateView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)

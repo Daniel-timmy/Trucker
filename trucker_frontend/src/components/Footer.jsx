@@ -4,7 +4,7 @@ import Col from "react-bootstrap/Col"
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquareFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
-
+import { Link } from "react-router-dom";
 
 const Footer = () => {
 
@@ -41,7 +41,7 @@ const Footer = () => {
                 </Col>
                 <Col className="footer-button-section">
                     <div className="footer-button-container">
-                        <Button className="footer-button">Get Started</Button>
+                        <Button as={Link} to='/login'  className="footer-button">Get Started</Button>
                     </div>
                 </Col>
             </Row>

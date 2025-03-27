@@ -38,7 +38,7 @@ class TripSerializer(serializers.ModelSerializer):
                   'status',
                   'vehicle_no',
                   'trailer_no',
-                   'driver' ]
+                   'driver', 'start_date', 'end_date' ]
         read_only_fields = ['driver']
     
     def create(self, validated_data):
@@ -49,6 +49,7 @@ class TripSerializer(serializers.ModelSerializer):
         try:
             if Trip.objects.filter(driver=user, status='in_progress').exists():
                     raise ValidationError({'error': 'Driver already have a trip In progress', 'success': 'false'})
+            print(validated_data)
             with transaction.atomic():
                 
                 trip = Trip.objects.create(
