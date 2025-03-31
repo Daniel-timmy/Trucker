@@ -20,6 +20,5 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('driver/', include('tracker.urls'))
-
+    path('driver/', include('tracker.urls')),
 ]

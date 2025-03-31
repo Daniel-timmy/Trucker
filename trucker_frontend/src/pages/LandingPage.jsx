@@ -1,16 +1,19 @@
 import Hero from "../components/Hero";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import React from 'react'
+import LogSheetsForm from "../components/LogSheetsForm";
+
+import React from "react";
 
 const LandingPage = () => {
   return (
     <>
-    <Header/>
-    <Hero/> 
-    <Footer/>
+      <Header />
+      <Hero />
+      <LogSheetsForm />
+      <Footer />
     </>
-  )
-}
+  );
+};
 
-export default LandingPage
+export default LandingPage;

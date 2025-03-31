@@ -97,44 +97,81 @@ class LogSheetSerializer(serializers.ModelSerializer):
                     
         except Exception as e:
             raise ValidationError({'error': 'Error creating Logsheet','success': 'False', 'msg': str(e)})
-        
+
+from datetime import datetime, timedelta      
 class LogEntrySerializer(serializers.ModelSerializer):
+    log_id = serializers.CharField(write_only=True, required=False)
+    trip_id = serializers.CharField(write_only=True, required=False)
+    span = serializers.CharField(write_only=True, required=True)
+    start_time = serializers.CharField(write_only=True, required=True)
+
     class Meta:
         model = LogEntry
-        fields = ['id', 'trip', 'logsheet', 'date',
+        fields = ['id', 'trip', 'logsheet',
                    'start_time', 'end_time', 'lat',
-                     'long', 'location','duration',
-                       'duty_status', 'point_type' ]
-        read_only_fields = ['id', 'trip', 'logsheet', 'date',
-                   'start_time']
+                     'long', 'location', 'duration',
+                       'duty_status', 'activity', 'log_id', 'trip_id', 'span']
+        read_only_fields = ['id', 'trip', 'logsheet', 'duration']
 
     def create(self, validated_data):
         request = self.context.get('request')
         user = request.user
-        sheet_id = request.parser_context['kwargs'].get('id') 
+        sheet_id = validated_data.pop('log_id', None)
+        trip_id = validated_data.pop('trip_id', None)
         todays_date = datetime.now().strftime('%Y-%m-%d')
+        print('here in create')
+        print(validated_data)
 
         try:
             with transaction.atomic():
-                if not Trip.objects.filter(driver=user, status='in_progress').exists():
-                    raise ValidationError({'error': 'Incorrect trip id','success': 'False'})
-                trip = Trip.objects.filter(driver=user, status='in_progress').first()
+                if not Trip.objects.filter(driver=user, status='in_progress', id=trip_id).exists():
+                    raise ValidationError({'error': 'Incorrect trip id', 'success': 'False'})
+                trip = Trip.objects.filter(id=trip_id).first()
                 if not LogSheet.objects.filter(id=sheet_id, trip_id=trip.id, date=todays_date).exists():
-                    raise ValidationError({'error': f'A LogSheet with id {id} deos not exist','success': 'False'})
+                    raise ValidationError({'error': f'A LogSheet with id {sheet_id} does not exist', 'success': 'False'})
+
+                span =  validated_data['span'].split(':')
+                start_time = datetime.strptime(validated_data['start_time'], "%H:%M").time()
+                start_time_datetime_obj = datetime.combine(datetime.today(), start_time)
+                end_time_datetime_obj = start_time_datetime_obj + timedelta(hours=int(span[0]), minutes=int(span[1]))
+                end_time = end_time_datetime_obj.time()
+               
                 logsheet = LogSheet.objects.filter(id=sheet_id, trip_id=trip.id, date=todays_date).first()
+                prev_logentry = LogEntry.objects.filter(logsheet=logsheet).order_by('-start_time').first()
+
+                if prev_logentry and prev_logentry.end_time != start_time:
+                    raise ValidationError({'error': f'Your start time must be the same as the end time of the previous log entry {prev_logentry.end_time}'})
+
+                if start_time > end_time:
+                    raise ValidationError({'error': 'Your duration must be within 24hours'})
+
+                duration = float(span[0]) + (float(span[1]) / 60)
                 logentry = LogEntry.objects.create(
                     trip=trip,
                     logsheet=logsheet,
                     lat=validated_data['lat'],
                     long=validated_data['long'],
                     location=validated_data['location'],
-                    duration=validated_data['duration'],
+                    duration=duration,
                     duty_status=validated_data['duty_status'],
-                    point_type=validated_data['point_type'],
+                    start_time=start_time,
+                    end_time=end_time,
+                    activity=validated_data['activity']
                 )
+                total_time = float(span[0]) + (int(span[1]) / 60) 
+
+                if validated_data['duty_status'] == 'sleeper':
+                    logsheet.berth = total_time
+                elif validated_data['duty_status'] == 'driving':
+                    logsheet.driving = total_time
+                elif validated_data['duty_status'] == 'on_duty':
+                    logsheet.on_duty = total_time
+                else:
+                    logsheet.off_duty = total_time
+                
+                logsheet.save()
                 logentry.save()
                 return logentry
                     
         except Exception as e:
-            raise ValidationError({'error': 'Error creating Logentry','success': 'False', 'msg': str(e)})
-         
+            raise ValidationError({'error': str(e)})

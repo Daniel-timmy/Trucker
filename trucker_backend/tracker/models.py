@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django_ulid.models import ULIDField, default
 import uuid
 import ulid
+from django.core.validators import MaxValueValidator, MinValueValidator
+
 
 class UserManager(BaseUserManager):
 
@@ -81,18 +83,23 @@ class LogSheet(models.Model):
     commodity = models.CharField(max_length=255)
     total_mileage = models.IntegerField(default=0)
     date = models.DateField(auto_now_add=True)
+    remarks = models.CharField(default="No Remarks", max_length=10000)
+    off_duty = models.FloatField(default=0.0)#seconds
+    on_duty = models.FloatField(default=0.0)
+    berth = models.FloatField(default=0.0)
+    driving = models.FloatField(default=0.0)
 
-from django.core.validators import MaxValueValidator, MinValueValidator
+
 class LogEntry(models.Model):
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
     logsheet = models.ForeignKey(LogSheet, on_delete=models.CASCADE)
 
+    # Automatic update
     lat = models.FloatField([MinValueValidator(-90), MaxValueValidator(90)])
     long = models.FloatField(validators=[MinValueValidator(-180), MaxValueValidator(180)])
     location = models.CharField(max_length=255)
-
-    date = models.DateField(auto_now_add=True)
+    
     start_time = models.TimeField(auto_now_add=True)
     end_time = models.TimeField(null=True, blank=True)
     duration = models.FloatField(default=0.0)  # in hours
@@ -106,15 +113,7 @@ class LogEntry(models.Model):
             ('on_duty', 'On Duty')
         ]
     )
-    point_type = models.CharField(max_length=20,
-                                  choices=[
-                                      ('start', 'Start'),
-                                      ('pickup', 'Pickup'),
-                                      ('dropoff', 'Dropoff'),
-                                      ('fuel', 'Fuel'),
-                                      ('rest', 'Rest'),
-                                      ('scale', 'Scale')
-                                  ])
+    activity = models.TextField(null=True, blank=True)
 
 
 # pip install psycopg2-binary django gdal

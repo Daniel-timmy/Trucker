@@ -16,6 +16,18 @@ class RegisterView(CreateAPIView):
     serializer_class = DriverSerializer
     queryset = Driver.objects.all()
 
+class DriverModifyView(RetrieveUpdateDestroyAPIView):
+    """
+    Driver
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = DriverSerializer
+    lookup_field = 'id'
+
+   
+    def get_queryset(self):
+        id = self.request.parser_context['kwargs'].get('id') 
+        return Driver.objects.filter(id=id)
 
 class TripView(ListCreateAPIView):
     """
@@ -120,7 +132,20 @@ class LogEntryListCreateView(ListCreateAPIView):
         sheet_id = self.request.parser_context['kwargs'].get('id') 
         if LogEntry.objects.filter(logsheet_id=sheet_id, end_time=None).exists():
             return Response({'error': 'Close the previous LogEntry by adding an end_time before creating a new entry', 'success': 'false'})
-        return super().post(request, *args, **kwargs)
+        print(request.data)
+        try:
+
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            print(str(e))
+            print('Error in LogEntryListCreateView post method')
+            if hasattr(e, 'detail') and isinstance(e.detail, dict):
+                error_message = next(iter(e.detail.values()))[1] if isinstance(next(iter(e.detail.values())), list) else next(iter(e.detail.values()))
+                error_message = error_message.split('=')[1]
+            else:
+                error_message = str(e)
+            print(error_message)
+            return Response({'success': 'false', 'details': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class LogEntryModifyView(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
