@@ -10,7 +10,6 @@ import {
   Form,
 } from "react-bootstrap";
 import api from "../api";
-import { Link } from "react-router-dom";
 import LineGraph from "./LineGraph";
 import { useMediaQuery } from "react-responsive";
 

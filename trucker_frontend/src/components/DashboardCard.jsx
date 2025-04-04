@@ -5,7 +5,6 @@ import placeholder from "../assets/placeholder.jpeg";
 const DashboardCard = ({ driver }) => {
   const [visibleFields, setVisibleFields] = useState(3);
 
-  // Adjust visible fields based on screen size
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -17,13 +16,10 @@ const DashboardCard = ({ driver }) => {
       }
     };
 
-    // Set initial value
     handleResize();
 
-    // Add event listener
     window.addEventListener("resize", handleResize);
 
-    // Cleanup
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 

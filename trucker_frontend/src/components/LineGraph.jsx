@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Container } from "react-bootstrap";
 import * as d3 from "d3";
 
 const LineGraph = ({ entries }) => {
   const svgRef = useRef(null);
-  const [points, setPoints] = useState([{ x: 0, y: "" }]);
+  const [points, setPoints] = useState([
+    { x: 0, y: "", location: "", activity: "" },
+  ]);
 
   useEffect(() => {
-    setPoints([{ x: 0, y: "" }]);
+    setPoints([{ x: 0, y: "", location: "", activity: "" }]);
     if (!entries || entries.length === 0) return;
 
     const status = {
@@ -22,8 +23,15 @@ const LineGraph = ({ entries }) => {
         const point = {
           x: entry.duration + prevPoints[prevPoints.length - 1].x,
           y: status[entry.duty_status],
+          location: entry.location,
+          activity: entry.activity,
         };
-        const nextPoint = { x: point.x, y: "" };
+        const nextPoint = {
+          x: point.x,
+          y: "",
+          location: entry.location,
+          activity: entry.activity,
+        };
         return [...prevPoints, point, nextPoint];
       });
     });
@@ -36,32 +44,28 @@ const LineGraph = ({ entries }) => {
   console.log(points);
 
   useEffect(() => {
-    // SVG dimensions
     const screenWidth = window.innerWidth;
     let width, height;
     let margin = { top: 20, right: 20, bottom: 30, left: 40 };
-    if (screenWidth < 576) {
+    if (screenWidth < 576 && screenWidth > 0) {
       width = 300;
       height = 200;
-    } else if (screenWidth < 768) {
+    } else if (screenWidth < 768 && screenWidth > 576) {
       width = 580;
       height = 400;
-    } else if (screenWidth >= 768) {
-      width = 800;
+    } else if (screenWidth > 768) {
+      width = 1000;
       height = 400;
     }
 
-    // Create SVG
     const svg = d3
       .select(svgRef.current)
       .attr("width", width)
       .attr("height", height)
       .style("background", "#f9f9f9");
 
-    // Clear previous content
     svg.selectAll("*").remove();
 
-    // Define scales
     const xScale = d3
       .scaleLinear()
       .domain([0, 24])
@@ -74,13 +78,11 @@ const LineGraph = ({ entries }) => {
       .range([height - margin.bottom, margin.top])
       .padding(0.5);
 
-    // Create line generator
     const line = d3
       .line()
       .x((d) => xScale(d.x))
       .y((d) => yScale(d.y));
 
-    // Draw the line
     svg
       .append("path")
       .datum(points)
@@ -89,7 +91,6 @@ const LineGraph = ({ entries }) => {
       .attr("stroke-width", 1)
       .attr("d", line);
 
-    // Add x-axis
     svg
       .append("g")
       .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -99,7 +100,6 @@ const LineGraph = ({ entries }) => {
       .style("text-anchor", "end")
       .style("font-size", "8px");
 
-    // Add x-axis grid lines
     svg
       .append("g")
       .attr("class", "grid")
@@ -113,15 +113,13 @@ const LineGraph = ({ entries }) => {
       )
       .attr("stroke-opacity", 0.2);
 
-    // Add y-axis
     svg
       .append("g")
       .attr("transform", `translate(${margin.left},0)`)
       .call(d3.axisLeft(yScale))
-      .selectAll("text") // Format y-axis text
-      .style("font-size", "12px");
+      .selectAll("text")
+      .style("font-size", "8px");
 
-    // Add y-axis grid lines
     svg
       .append("g")
       .attr("class", "grid")
@@ -134,7 +132,6 @@ const LineGraph = ({ entries }) => {
       )
       .attr("stroke-opacity", 0.2);
 
-    // Add dots for each data point
     svg
       .selectAll(".dot")
       .data(points.filter((d) => d.y !== "")) // Filter out invalid points
@@ -146,20 +143,20 @@ const LineGraph = ({ entries }) => {
       .attr("r", 4)
       .attr("fill", "steelblue")
       .on("mouseover", (event) => {
-        d3.select(event.currentTarget).attr("r", 6); // Enlarge on hover
+        d3.select(event.currentTarget).attr("r", 6);
       })
       .on("mouseout", (event) => {
-        d3.select(event.currentTarget).attr("r", 4); // Reset size
+        d3.select(event.currentTarget).attr("r", 4);
       })
       .on("click", (event, d) => {
-        event.stopPropagation(); // Prevent body click from firing
-        event.preventDefault(); // Additional safeguard against default behavior
+        event.stopPropagation();
+        event.preventDefault();
         d3.selectAll(".tooltip").remove();
 
         const tooltip = d3
           .select("body")
           .append("div")
-          .attr("class", "tooltip") // Unique class to avoid conflicts
+          .attr("class", "tooltip")
           .style("position", "absolute")
           .style("background", "#fff")
           .style("border", "1px solid #ccc")
@@ -167,24 +164,23 @@ const LineGraph = ({ entries }) => {
           .style("border-radius", "4px")
           .style("box-shadow", "0px 0px 5px rgba(0,0,0,0.3)")
           .style("pointer-events", "none")
-          .style("z-index", "1000") // Higher z-index to ensure visibility
-          .style("opacity", 0) // Start hidden for fade-in effect
-          .html(`Time: ${d.x.toFixed(1)} hours<br>Status: ${d.y}`)
+          .style("z-index", "1000")
+          .style("opacity", 0)
+          .html(`Activity: ${d.activity} hours<br>Location: ${d.location}`)
           .style("left", `${event.pageX + 10}px`)
           .style("top", `${event.pageY + 10}px`)
-          .transition() // Add fade-in effect
+          .transition()
           .duration(200)
           .style("opacity", 1);
-        console.log("Tooltip created:", tooltip.node());
+        // console.log("Tooltip created:", tooltip.node());
       });
 
-    // Remove tooltip on click elsewhere
     d3.select("body").on("click.body", (event) => {
       if (!event.target.classList.contains("dot")) {
         d3.selectAll(".tooltip").remove();
       }
     });
-  }, [points]); // Redraw when data changes
+  }, [points]);
 
   return (
     <div>
