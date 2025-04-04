@@ -4,7 +4,8 @@ from django.db.models import Sum
 from rest_framework.exceptions import ValidationError
 from django.core.cache import cache
 import requests
-from trucker_backend.settings import ARCGIS_API_KEY
+import os
+ARCGIS_API_KEY = os.environ.get('ARCGIS_API_KEY')
 
 def seventy_hour_window_checker(driver):
     

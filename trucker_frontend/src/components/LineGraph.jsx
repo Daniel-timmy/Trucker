@@ -55,7 +55,8 @@ const LineGraph = ({ entries }) => {
     const svg = d3
       .select(svgRef.current)
       .attr("width", width)
-      .attr("height", height);
+      .attr("height", height)
+      .style("background", "#f9f9f9");
 
     // Clear previous content
     svg.selectAll("*").remove();
@@ -136,14 +137,53 @@ const LineGraph = ({ entries }) => {
     // Add dots for each data point
     svg
       .selectAll(".dot")
-      .data(points)
+      .data(points.filter((d) => d.y !== "")) // Filter out invalid points
       .enter()
       .append("circle")
       .attr("class", "dot")
       .attr("cx", (d) => xScale(d.x))
       .attr("cy", (d) => yScale(d.y))
       .attr("r", 4)
-      .attr("fill", "steelblue");
+      .attr("fill", "steelblue")
+      .on("mouseover", (event) => {
+        d3.select(event.currentTarget).attr("r", 6); // Enlarge on hover
+      })
+      .on("mouseout", (event) => {
+        d3.select(event.currentTarget).attr("r", 4); // Reset size
+      })
+      .on("click", (event, d) => {
+        event.stopPropagation(); // Prevent body click from firing
+        event.preventDefault(); // Additional safeguard against default behavior
+        d3.selectAll(".tooltip").remove();
+
+        const tooltip = d3
+          .select("body")
+          .append("div")
+          .attr("class", "tooltip") // Unique class to avoid conflicts
+          .style("position", "absolute")
+          .style("background", "#fff")
+          .style("border", "1px solid #ccc")
+          .style("padding", "5px")
+          .style("border-radius", "4px")
+          .style("box-shadow", "0px 0px 5px rgba(0,0,0,0.3)")
+          .style("pointer-events", "none")
+          .style("z-index", "1000") // Higher z-index to ensure visibility
+          .style("opacity", 0) // Start hidden for fade-in effect
+          .html(`Time: ${d.x.toFixed(1)} hours<br>Status: ${d.y}`)
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY + 10}px`)
+          .transition() // Add fade-in effect
+          .duration(200)
+          .style("opacity", 1);
+        console.log("Tooltip created:", tooltip.node());
+      });
+
+    // Remove tooltip on click elsewhere
+    d3.select("body").on("click.body", (event) => {
+      if (!event.target.classList.contains("dot")) {
+        d3.selectAll(".tooltip").remove();
+      }
+    });
   }, [points]); // Redraw when data changes
 
   return (
