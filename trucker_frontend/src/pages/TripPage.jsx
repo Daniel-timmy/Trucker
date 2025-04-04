@@ -62,23 +62,24 @@ const TripPage = () => {
         <TripCard key={currentTrip.id} period="current" trip={currentTrip} />
       )}
       <hr />
-
       <div className="d-flex mt-5 align-items-center justify-content-between px-5">
         <h2>Past Trip</h2>
       </div>
       <hr />
 
-      {pLoading ? (
-        <LoadingIndicator />
-      ) : !pastTrip ? (
-        <h5 className="small">You have no past trip</h5>
-      ) : (
-        <ul>
-          {pastTrip.map((trip) => (
-            <TripCard key={trip.id} period="past" trip={trip} />
-          ))}
-        </ul>
-      )}
+      <section style={{ height: "600px" }}>
+        {pLoading ? (
+          <LoadingIndicator />
+        ) : !pastTrip ? (
+          <h5 className="small">You have no past trip</h5>
+        ) : (
+          <ul>
+            {pastTrip.map((trip) => (
+              <TripCard key={trip.id} period="past" trip={trip} />
+            ))}
+          </ul>
+        )}
+      </section>
       <Footer />
     </>
   );

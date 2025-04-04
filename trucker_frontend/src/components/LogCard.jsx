@@ -11,8 +11,10 @@ import {
 } from "react-bootstrap";
 import api from "../api";
 import { Link } from "react-router-dom";
+import LineGraph from "./LineGraph";
+import { useMediaQuery } from "react-responsive";
 
-const LogCard = ({ logsheet, entries, trip, driver }) => {
+const LogCard = ({ logsheet, trip, driver }) => {
   const [isContainerVisible, setIsContainerVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [lat, setLat] = useState("");
@@ -22,11 +24,11 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
   const [dutyStatus, setDutyStatus] = useState("off_duty");
   const [activity, setActivity] = useState("");
   const [duration, setDuration] = useState("");
-  const [errorDetails, setErrorDetails] = useState(""); // Add state for error details
-  const [showUpdateModal, setShowUpdateModal] = useState(false); // State for update modal
-  const [updatedMileage, setUpdatedMileage] = useState(logsheet.total_mileage); // State for total mileage
-  const [updatedRemarks, setUpdatedRemarks] = useState(logsheet.remarks); // State for remarks
-
+  const [errorDetails, setErrorDetails] = useState("");
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updatedMileage, setUpdatedMileage] = useState(logsheet.total_mileage);
+  const [updatedRemarks, setUpdatedRemarks] = useState(logsheet.remarks);
+  const [entries, setEntries] = useState([]);
   const today = new Date().toISOString().split("T")[0];
 
   const toggleContainerVisibility = () => {
@@ -35,7 +37,7 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
   const handleTimeChange = (e) => {
     const [hours, minutes] = e.target.value.split(":");
     const totalMinutes = parseInt(hours) * 60 + parseInt(minutes);
-    const roundedMinutes = Math.round(totalMinutes / 15) * 15; // Snap to nearest 15-min interval
+    const roundedMinutes = Math.round(totalMinutes / 15) * 15;
     const newHours = Math.floor(roundedMinutes / 60)
       .toString()
       .padStart(2, "0");
@@ -58,6 +60,15 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
   const handleCloseUpdateModal = () => {
     setShowUpdateModal(false);
   };
+  const getEntriesForTrip = async () => {
+    try {
+      const res = await api.get(`logentries/${logsheet.id}/logsheets/`);
+      console.log(res.data);
+      setEntries(res.data);
+    } catch (error) {
+      alert(error);
+    }
+  };
 
   const handleSubmitUpdateLogSheet = async (e) => {
     e.preventDefault();
@@ -75,8 +86,8 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
 
   const handleSubmitOverlay = async (e) => {
     e.preventDefault();
-    const log_id = logsheet.id; // Extract log_id from logsheet
-    const trip_id = trip.id; // Extract trip_id from trip
+    const log_id = logsheet.id;
+    const trip_id = trip.id;
     console.log({
       lat,
       long,
@@ -94,54 +105,21 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
         long: long,
         location: location,
         span: duration,
-        start_time: startTime,
+        startTime: startTime,
         duty_status: dutyStatus,
         activity: activity,
         log_id: log_id,
-        trip_id: trip_id, // Include trip_id in the payload
+        trip_id: trip_id,
       });
+      alert("Entry saved successful");
     } catch (error) {
       setErrorDetails(
         error.response?.data?.details || "An unexpected error occurred."
       );
       console.log(error.response?.data?.details);
     } finally {
-      // setShowOverlay(false);
+      setShowOverlay(false);
     }
-  };
-
-  const tableStyles = {
-    border: "1px solid black",
-    textAlign: "center",
-    padding: "5px",
-  };
-
-  const gridTableStyles = {
-    width: "100%",
-    tableLayout: "fixed",
-  };
-
-  const gridLabelStyles = {
-    writingMode: "vertical-rl",
-    transform: "rotate(180deg)",
-    padding: "10px 0",
-  };
-
-  const hourCellStyles = {
-    fontSize: "8px",
-  };
-
-  const gridCellStyles = {
-    height: "30px",
-    userSelect: "none",
-    border: "1px solid black",
-    backgroundImage:
-      "linear-gradient(to bottom, transparent calc(50% - 2px), black, transparent calc(50% + 1px))",
-  };
-  const gridCellTr = {
-    height: "30px",
-    userSelect: "none",
-    border: "1px solid black",
   };
 
   useEffect(() => {
@@ -160,211 +138,279 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
     }
   }, []);
 
+  useEffect(() => {
+    getEntriesForTrip();
+  }, [logsheet.id]);
+
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+
   return (
     <>
       <Card
-        className="mx-auto mb-2"
+        className="mx-auto mb-3"
         bg={isContainerVisible ? "secondary" : "light"}
-        style={{ maxWidth: "80%" }}
+        style={{ maxWidth: "90%", borderRadius: "10px", overflow: "hidden" }}
       >
         <Card.Body
-          className="d-flex justify-content-between small"
-          style={{ fontSize: "0.6em" }}
+          className="d-flex justify-content-between align-items-center small"
+          style={{ fontSize: "0.8em", padding: "1rem" }}
         >
-          <span>Date: {logsheet.date}</span>
-          <span>ID: {logsheet.id}</span>
+          <span>
+            <strong>Date:</strong> {logsheet.date}
+          </span>
+          <span>
+            <strong>ID:</strong> {logsheet.id}
+          </span>
           <Button
-            variant="primary"
+            variant={isContainerVisible ? "outline-light" : "outline-primary"}
             onClick={toggleContainerVisibility}
-            style={{ fontSize: "1em" }}
+            style={{ fontSize: "0.9em" }}
           >
-            {isContainerVisible ? "Hide" : "Show"} Details
+            {isContainerVisible ? "Hide Details" : "Show Details"}
           </Button>
         </Card.Body>
       </Card>
-      {isContainerVisible && (
-        <Card
-          className=" mb-2 w-100 w-md-auto mx-auto "
-          bg="light"
-          style={{
-            boxShadow: "rgb(157, 154, 154) 0px 5px 15px",
-            width: "100%", // Ensure full width on mobile
-          }}
-        >
-          <Container>
-            <h3 className="text-center mb-2 small mx-auto">
-              Driver's Record of Duty Status
-            </h3>
-            <div style={{ fontSize: "0.7em" }}>
-              <Row className="mx-auto d-flex align-items-center ">
-                <Col md={4}>
-                  <div>
-                    <strong>Driver's Name:</strong>
-                    <span>{driver.first_name + " " + driver.last_name}</span>
+      {isContainerVisible &&
+        (isMobile ? (
+          <Modal
+            show={isContainerVisible}
+            onHide={toggleContainerVisibility}
+            centered
+          >
+            <Modal.Header closeButton>
+              <Modal.Title>Driver's Record of Duty Status</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Container fluid className="p-3">
+                <h4 className="text-center mb-4" style={{ fontSize: "1.2em" }}>
+                  Driver's Record of Duty Status
+                </h4>
+                <div style={{ fontSize: "0.9em" }}>
+                  {/* ...existing content inside the card... */}
+                  <Row className="mb-3">
+                    <Col xs={12} md={4} className="mb-2">
+                      <div>
+                        <strong>Driver's Name:</strong>
+                        <span>
+                          {" "}
+                          {driver.first_name + " " + driver.last_name}
+                        </span>
+                      </div>
+                    </Col>
+                    <Col xs={12} md={4} className="mb-2">
+                      <div>
+                        <strong>Total Miles Driven:</strong>
+                        <span> {logsheet.total_mileage}</span>
+                      </div>
+                    </Col>
+                    <Col xs={12} md={4} className="mb-2">
+                      <div>
+                        <strong>Date:</strong>
+                        <span> {logsheet.date}</span>
+                      </div>
+                    </Col>
+                  </Row>
+                  <Row className="mb-3">
+                    <Col xs={12} md={4}>
+                      <div>
+                        <strong>Carrier Name:</strong>
+                        <span> {logsheet.shipper}</span>
+                      </div>
+                    </Col>
+                    <Col xs={12} md={4}>
+                      <div>
+                        <strong>Carrier Address:</strong>
+                        <span> {trip.dropoff_location}</span>
+                      </div>
+                    </Col>
+                    <Col xs={12} md={4}>
+                      <div>
+                        <strong>Commodity:</strong>
+                        <span> {logsheet.commodity}</span>
+                      </div>
+                    </Col>
+                  </Row>
+                  <Row className="mb-3">
+                    <Col xs={12} md={4}>
+                      <div>
+                        <strong>Home Operating Center:</strong>
+                        <span> {trip.home_operating_center}</span>
+                      </div>
+                    </Col>
+                    <Col xs={12} md={4}>
+                      <div>
+                        <strong>Vehicle No:</strong>
+                        <span> {trip.vehicle_no}</span>
+                      </div>
+                    </Col>
+                    <Col xs={12} md={4}>
+                      <div>
+                        <strong>Trailer No:</strong>
+                        <span> {trip.trailer_no}</span>
+                      </div>
+                    </Col>
+                  </Row>
+                  <LineGraph entries={entries} />
+                  <div className="mt-4">
+                    <Table striped bordered hover size="sm">
+                      <thead>
+                        <tr>
+                          <th>Driving</th>
+                          <th>Sleeper Berth</th>
+                          <th>On Duty</th>
+                          <th>Off Duty</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{logsheet.driving}</td>
+                          <td>{logsheet.berth}</td>
+                          <td>{logsheet.on_duty}</td>
+                          <td>{logsheet.off_duty}</td>
+                        </tr>
+                      </tbody>
+                    </Table>
                   </div>
-                </Col>
-                <Col md={4}>
-                  <div>
-                    <strong>Total Miles Driven:</strong>
-                    <span> {logsheet.total_mileage}</span>
+                  <div className="mt-4">
+                    <strong>Remarks (e.g., Location, Duty Changes):</strong>
+                    <p>{logsheet.remarks || "No remarks available."}</p>
                   </div>
-                </Col>
-                <Col md={4}>
-                  <div>
-                    <strong>Date:</strong>
-                    <span> {logsheet.date}</span>
+                  <div className="mt-3">
+                    <strong>Driver's Signature:</strong>
+                    <p>{driver.first_name + " " + driver.last_name}</p>
                   </div>
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col md={4}>
-                  <div>
-                    <strong>Carrier Name:</strong>
-                    <span> {logsheet.shipper}</span>
+                </div>
+                {logsheet.date === today && (
+                  <div className="d-flex justify-content-center gap-3 mt-4">
+                    <Button variant="success" onClick={handleNewEntryClick}>
+                      New Entry
+                    </Button>
+                    <Button variant="primary" onClick={handleUpdateLogSheet}>
+                      Update Logsheet
+                    </Button>
                   </div>
-                </Col>
-                <Col md={4}>
-                  <div>
-                    <strong>Carrier Address:</strong>
-                    <span> {trip.dropoff_location}</span>
-                  </div>
-                </Col>
-                <Col md={4}>
-                  <div>
-                    <strong>Commodity:</strong>
-                    <span> {logsheet.commodity}</span>
-                  </div>
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col md={4}>
-                  <div>
-                    <strong>Home Operating Center:</strong>
-                    <span> {trip.home_operating_center}</span>
-                  </div>
-                </Col>
-                <Col md={4}>
-                  <div>
-                    <strong>Vehicle No:</strong>
-                    <span> {trip.vehicle_no}</span>
-                  </div>
-                </Col>
-                <Col md={4}>
-                  <div>
-                    <strong>Trailer No:</strong>
-                    <span> {trip.trailer_no}</span>
-                  </div>
-                </Col>
-              </Row>
-              <Row className="mb-1"></Row>
-
-              <Table style={gridTableStyles} className="mb-3">
-                <thead>
-                  <tr>
-                    <th style={{ width: "10%" }}></th>
-                    <th colSpan="24">Time (24-Hour Period)</th>
-                  </tr>
-                  <tr>
-                    <th></th>
-                    <th style={hourCellStyles}>12 AM</th>
-                    <th style={hourCellStyles}>1</th>
-                    <th style={hourCellStyles}>2</th>
-                    <th style={hourCellStyles}>3</th>
-                    <th style={hourCellStyles}>4</th>
-                    <th style={hourCellStyles}>5</th>
-                    <th style={hourCellStyles}>6</th>
-                    <th style={hourCellStyles}>7</th>
-                    <th style={hourCellStyles}>8</th>
-                    <th style={hourCellStyles}>9</th>
-                    <th style={hourCellStyles}>10</th>
-                    <th style={hourCellStyles}>11</th>
-                    <th style={hourCellStyles}>12 PM</th>
-                    <th style={hourCellStyles}>1</th>
-                    <th style={hourCellStyles}>2</th>
-                    <th style={hourCellStyles}>3</th>
-                    <th style={hourCellStyles}>4</th>
-                    <th style={hourCellStyles}>5</th>
-                    <th style={hourCellStyles}>6</th>
-                    <th style={hourCellStyles}>7</th>
-                    <th style={hourCellStyles}>8</th>
-                    <th style={hourCellStyles}>9</th>
-                    <th style={hourCellStyles}>10</th>
-                    <th style={hourCellStyles}>11</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style={gridCellTr}>Off Duty</td>
-                    {Array.from({ length: 24 }).map((_, hour) => (
-                      <td
-                        key={hour}
-                        style={gridCellStyles}
-                        data-hour={hour}
-                        data-duty="off_duty"
-                      ></td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td style={gridCellTr}>Sleeper Berth</td>
-                    {Array.from({ length: 24 }).map((_, hour) => (
-                      <td
-                        key={hour}
-                        style={gridCellStyles}
-                        data-hour={hour}
-                        data-duty="sleeper_berth"
-                      ></td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td style={gridCellTr}>Driving</td>
-                    {Array.from({ length: 24 }).map((_, hour) => (
-                      <td
-                        key={hour}
-                        style={gridCellStyles}
-                        data-hour={hour}
-                        data-duty="driving"
-                      ></td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td style={gridCellTr}>On Duty (Not Driving)</td>
-                    {Array.from({ length: 24 }).map((_, hour) => (
-                      <td
-                        key={hour}
-                        style={gridCellStyles}
-                        data-hour={hour}
-                        data-duty="on_duty"
-                      ></td>
-                    ))}
-                  </tr>
-                </tbody>
-              </Table>
-
-              <div className="mb-3">
-                <strong>Remarks (e.g., Location, Duty Changes):</strong>
-                <p> No remarks available.</p>
+                )}
+              </Container>
+            </Modal.Body>
+          </Modal>
+        ) : (
+          <Card
+            className="mb-3 mx-auto"
+            bg="light"
+            style={{
+              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+              borderRadius: "10px",
+              maxWidth: "90%",
+            }}
+          >
+            <Container fluid className="p-3">
+              <h4 className="text-center mb-4" style={{ fontSize: "1.2em" }}>
+                Driver's Record of Duty Status
+              </h4>
+              <div style={{ fontSize: "0.9em" }}>
+                <Row className="mb-3">
+                  <Col xs={12} md={4} className="mb-2">
+                    <div>
+                      <strong>Driver's Name:</strong>
+                      <span> {driver.first_name + " " + driver.last_name}</span>
+                    </div>
+                  </Col>
+                  <Col xs={12} md={4} className="mb-2">
+                    <div>
+                      <strong>Total Miles Driven:</strong>
+                      <span> {logsheet.total_mileage}</span>
+                    </div>
+                  </Col>
+                  <Col xs={12} md={4} className="mb-2">
+                    <div>
+                      <strong>Date:</strong>
+                      <span> {logsheet.date}</span>
+                    </div>
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col xs={12} md={4}>
+                    <div>
+                      <strong>Carrier Name:</strong>
+                      <span> {logsheet.shipper}</span>
+                    </div>
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <div>
+                      <strong>Carrier Address:</strong>
+                      <span> {trip.dropoff_location}</span>
+                    </div>
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <div>
+                      <strong>Commodity:</strong>
+                      <span> {logsheet.commodity}</span>
+                    </div>
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col xs={12} md={4}>
+                    <div>
+                      <strong>Home Operating Center:</strong>
+                      <span> {trip.home_operating_center}</span>
+                    </div>
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <div>
+                      <strong>Vehicle No:</strong>
+                      <span> {trip.vehicle_no}</span>
+                    </div>
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <div>
+                      <strong>Trailer No:</strong>
+                      <span> {trip.trailer_no}</span>
+                    </div>
+                  </Col>
+                </Row>
+                <LineGraph entries={entries} />
+                <div className="mt-4">
+                  <Table striped bordered hover size="sm">
+                    <thead>
+                      <tr>
+                        <th>Driving</th>
+                        <th>Sleeper Berth</th>
+                        <th>On Duty</th>
+                        <th>Off Duty</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{logsheet.driving}</td>
+                        <td>{logsheet.berth}</td>
+                        <td>{logsheet.on_duty}</td>
+                        <td>{logsheet.off_duty}</td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </div>
+                <div className="mt-4">
+                  <strong>Remarks (e.g., Location, Duty Changes):</strong>
+                  <p>{logsheet.remarks || "No remarks available."}</p>
+                </div>
+                <div className="mt-3">
+                  <strong>Driver's Signature:</strong>
+                  <p>{driver.first_name + " " + driver.last_name}</p>
+                </div>
               </div>
-
-              <div className="mb-3">
-                <strong>Driver's Signature:</strong>
-                <p> {driver.first_name + " " + driver.last_name}</p>
-              </div>
-            </div>
-            {logsheet.date === today && (
-              <Button variant="success" onClick={handleNewEntryClick}>
-                New Entry
-              </Button>
-            )}
-            {logsheet.date === today && (
-              <Link variant="success" onClick={handleUpdateLogSheet}>
-                Update Logsheet
-              </Link>
-            )}
-          </Container>
-        </Card>
-      )}
+              {logsheet.date === today && (
+                <div className="d-flex justify-content-center gap-3 mt-4">
+                  <Button variant="success" onClick={handleNewEntryClick}>
+                    New Entry
+                  </Button>
+                  <Button variant="primary" onClick={handleUpdateLogSheet}>
+                    Update Logsheet
+                  </Button>
+                </div>
+              )}
+            </Container>
+          </Card>
+        ))}
       {/* Overlay Modal */}
       <Modal show={showOverlay} onHide={handleCloseOverlay} centered>
         <Modal.Header closeButton>
@@ -448,23 +494,29 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
               <Form.Label>Activity</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter activity"
+                placeholder="Enter activity(Scaling, DropOff, refueling e.t.c)"
                 value={activity}
                 onChange={(e) => setActivity(e.target.value)}
+                pattern="^.{5,}$"
+                required
               />
+              <Form.Text className="text-danger">
+                {activity &&
+                  !/^.{5,}$/.test(activity) &&
+                  "Activity can not be empty and must be at least 5 characters"}
+              </Form.Text>
             </Form.Group>
 
-            <Button variant="primary" type="submit">
+            <Button variant="primary" type="submit" className="w-100 mt-3">
               Save Entry
             </Button>
           </Form>
-          {errorDetails && ( // Display error details if present
-            <div className="mt-3 text-danger">
+          {errorDetails && (
+            <div className="mt-3 text-danger text-center">
               <strong>Error:</strong> {errorDetails}
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer></Modal.Footer>
       </Modal>
       {/* Update Logsheet Modal */}
       <Modal show={showUpdateModal} onHide={handleCloseUpdateModal} centered>
@@ -493,7 +545,7 @@ const LogCard = ({ logsheet, entries, trip, driver }) => {
                 onChange={(e) => setUpdatedRemarks(e.target.value)}
               />
             </Form.Group>
-            <Button variant="primary" type="submit">
+            <Button variant="primary" type="submit" className="w-100 mt-3">
               Save Changes
             </Button>
           </Form>

@@ -27,6 +27,7 @@ class DriverModifyView(RetrieveUpdateDestroyAPIView):
    
     def get_queryset(self):
         id = self.request.parser_context['kwargs'].get('id') 
+        print(Driver.objects.filter(id=id))
         return Driver.objects.filter(id=id)
 
 class TripView(ListCreateAPIView):
@@ -100,7 +101,6 @@ class LogSheetModifyView(RetrieveUpdateDestroyAPIView):
 
     
     def get_queryset(self):
-        # logsheet_id = self.request.parser_context['kwargs'].get('id') 
         todays_date = datetime.now().strftime('%Y-%m-%d')
         return LogSheet.objects.filter(driver=self.request.user, date=todays_date)
     
@@ -108,6 +108,8 @@ class LogSheetModifyView(RetrieveUpdateDestroyAPIView):
         id = self.request.parser_context['kwargs'].get('id') 
         todays_date = datetime.now().date()
         logsheet = LogSheet.objects.filter(driver=self.request.user, id=id).first()
+        print(request.data)
+        print(todays_date)
         if logsheet and logsheet.date == todays_date:
             return super().patch(request, *args, **kwargs)
         return Response({'error': 'You can not update the previous day LogSheet', 'success': 'false'})
@@ -170,3 +172,28 @@ class LogEntryModifyView(RetrieveUpdateDestroyAPIView):
         if logentry and logentry.date == todays_date:
             return super().delete(request, *args, **kwargs)
         return Response({'error': 'You can not delete the previous day LogEntry', 'success': 'false'})
+
+class TripLogEntriesView(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LogEntrySerializer
+
+    def get_queryset(self):
+        trip_id = self.request.parser_context['kwargs'].get('id')
+        if not trip_id:
+            return LogEntry.objects.none()  
+        
+        trip = Trip.objects.filter(id=trip_id)
+        if not trip:
+            return LogEntry.objects.none()  
+        
+        return LogEntry.objects.filter(trip=trip_id)
+    
+class SheetsLogEntryListView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LogEntrySerializer
+
+    def get_queryset(self):
+        sheet_id = self.request.parser_context['kwargs'].get('id') 
+        if not sheet_id:
+            return LogEntry.objects.none()
+        return LogEntry.objects.filter(logsheet_id=sheet_id)
