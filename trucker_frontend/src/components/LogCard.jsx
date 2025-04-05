@@ -111,13 +111,12 @@ const LogCard = ({ logsheet, trip, driver }) => {
         trip_id: trip_id,
       });
       alert("Entry saved successful");
+      setShowOverlay(false);
     } catch (error) {
       setErrorDetails(
         error.response?.data?.details || "An unexpected error occurred."
       );
       console.log(error.response?.data?.details);
-    } finally {
-      setShowOverlay(false);
     }
   };
 
@@ -139,7 +138,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
 
   useEffect(() => {
     getEntriesForTrip();
-  }, [logsheet.id]);
+  }, [logsheet.id, showOverlay]);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
 

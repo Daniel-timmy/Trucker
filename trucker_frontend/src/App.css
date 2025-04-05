@@ -2,5 +2,19 @@
   margin: 0 auto;
   text-align: center;
   background-color: #000;
-  color: #fff; 
+  color: #fff;
+}
+arcgis-map {
+  display: block;
+  height: 100vh;
+}
+
+#directions-container {
+  max-height: 50vh;
+  width: 25vw;
+  overflow-y: auto;
+}
+
+#directions-notice {
+  max-width: 25vw;
 }

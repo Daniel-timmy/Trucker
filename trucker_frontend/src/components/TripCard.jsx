@@ -1,6 +1,8 @@
-import React from "react";
+import React, { use } from "react";
 import { Card, Container, Row, Col, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import api from "../api";
+import { useState, useEffect } from "react";
 
 const TripCard = ({
   period,
@@ -18,6 +20,25 @@ const TripCard = ({
   },
   trip,
 }) => {
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed, pad to 2 digits
+    const day = String(today.getDate()).padStart(2, "0"); // Pad to 2 digits
+    return `${year}-${month}-${day}`; // Returns e.g., "2025-04-05"
+  };
+
+  const setRefueling = async () => {
+    const last_refuel = getCurrentDate();
+    const last_refuel_mileage = trip.total_mileage;
+
+    const res = await api.patch(`trips/${id}/refuel/`, {
+      last_refuel_mileage,
+    });
+    if (res.status === 200) {
+      alert("Refueling set successfully!");
+    }
+  };
   return (
     <>
       <Card
@@ -99,6 +120,25 @@ const TripCard = ({
             </Col>
           </Row>
         </Container>
+
+        {status === "in_progress" ? (
+          <Card.Footer className="text-muted text-center ">
+            <small>Miles to refueling: {trip.miles_to_refuel}</small>
+            {trip.refuel ? (
+              <Button
+                style={{ marginLeft: "50px" }}
+                onClick={setRefueling}
+                variant="danger"
+              >
+                Refuel
+              </Button>
+            ) : (
+              <h1></h1>
+            )}
+          </Card.Footer>
+        ) : (
+          <h1></h1>
+        )}
       </Card>
     </>
   );

@@ -66,7 +66,6 @@ const TripForm = ({ route, method, trip }) => {
 
     try {
       if (method === "new") {
-        console.log("sdfghjk");
         const res = await api.post(route, {
           pickup_location,
           dropoff_location,
@@ -78,7 +77,6 @@ const TripForm = ({ route, method, trip }) => {
           vehicle_no,
           trailer_no,
         });
-        console.log(res);
         if (res.status === 201) {
           alert(`Trip Created Successfully: ${res.data.id}`);
         }

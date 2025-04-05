@@ -5,7 +5,10 @@ from rest_framework.exceptions import ValidationError
 from django.core.cache import cache
 import requests
 import os
-ARCGIS_API_KEY = os.environ.get('ARCGIS_API_KEY')
+from dotenv import load_dotenv
+load_dotenv()
+
+API_KEY = os.environ.get('API_KEY')
 
 def seventy_hour_window_checker(driver):
     
@@ -43,24 +46,21 @@ def geocode_address(address):
     cached_result = cache.get(cache_key)
     if cached_result:
         return cached_result
-    geocode_url = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
-    
+    print(API_KEY)
+    url = f"https://us1.locationiq.com/v1/search?key={API_KEY}&q={address}&format=json&"
 
-    params = {
-        'f': "json",
-        "singleLine": address,
-        "api_key": ARCGIS_API_KEY,
-    }
-    response = requests.get(geocode_url, params=params)
-    response.raise_for_status()
-    print(f'Result from geocode_address {response}')
+    headers = {"accept": "application/json"}
+
+    response = requests.get(url, headers=headers)
+
 
     data = response.json()
-    if not data.get("candidates"):
-        raise ValidationError(f"MO candidates found for address: {address}")
+    print(data[0]['lon'])
+    print(data[0]['lat'])
+    if not data:
+        raise ValidationError(f"NO candidates found for address: {address}")
     
-    coords = data['candidates'][0]['location']
-    result = {'longitude': coords["x"], "latitude": coords['y']}
+    result = {'longitude': data[0]['lon'], "latitude": data[0]['lat']}
 
     cache.set(cache_key, result, timeout=86400)
     return result

@@ -1,37 +1,206 @@
+import api from "../api";
 import MapView from "@arcgis/core/views/MapView";
 import Map from "@arcgis/core/Map";
-import { useRef, useEffect } from "react";
+import RouteLayer from "@arcgis/core/layers/RouteLayer";
+import Graphic from "@arcgis/core/Graphic";
+import Point from "@arcgis/core/geometry/Point";
+import esriConfig from "@arcgis/core/config";
+import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
+import { useRef, useEffect, useState } from "react";
+import PopupTemplate from "@arcgis/core/PopupTemplate";
+import Directions from "@arcgis/core/widgets/Directions";
 
-const MapComponent = () => {
+const API_KEY = import.meta.env.VITE_ARCGIS_API_KEY;
+
+const MapCard = ({ trip }) => {
+  const [entries, setEntries] = useState([]);
+  const [stops, setStops] = useState([]);
+  const [routeDetails, setRouteDetails] = useState(null);
+
   const mapDiv = useRef(null);
 
+  const getEntries = async () => {
+    const res = await api.get(`logentries/${trip.id}/trips/`);
+    const data = res.data;
+    setEntries(data.reverse());
+  };
   useEffect(() => {
+    getEntries();
+  }, [trip]);
+
+  useEffect(() => {
+    if (entries.length === 0) {
+      return;
+    }
+    setStops(() => {
+      const stops = entries.map((entry) => {
+        const point = new Point({
+          x: entry.long,
+          y: entry.lat,
+          spatialReference: { wkid: 4326 },
+        });
+        return new Graphic({
+          geometry: point,
+          symbol: {
+            type: "simple-marker",
+            color: "blue",
+            size: "12px",
+          },
+          attributes: {
+            Location: entry.location,
+            Activity: entry.activity,
+          },
+          popupTemplate: new PopupTemplate({
+            title: "{Location}",
+            content: "{Activity}",
+          }),
+        });
+      });
+      return stops;
+    });
+  }, [entries]);
+
+  useEffect(() => {
+    if (!trip) return;
+    esriConfig.apiKey = API_KEY;
+
     if (mapDiv.current) {
-      /**
-       * Initialize application
-       */
       const webmap = new Map({
         basemap: "dark-gray-vector",
       });
 
+      const routeLayer = new RouteLayer();
+      webmap.add(routeLayer);
+
       const view = new MapView({
-        container: mapDiv.current, // The id or node representing the DOM element containing the view.
-        map: webmap, // An instance of a Map object to display in the view.
+        container: mapDiv.current,
+        map: webmap,
         center: [-117.149, 32.7353],
-        scale: 10000000, // Represents the map scale at the center of the view.
+        scale: 10000000,
       });
 
-      return () => view && view.destroy();
+      view.when(async () => {
+        try {
+          const startPoint = new Point({
+            x: trip.start_coords.longitude,
+            y: trip.start_coords.latitude,
+            spatialReference: { wkid: 4326 },
+          });
+
+          const endPoint = new Point({
+            x: trip.end_coords.longitude,
+            y: trip.end_coords.latitude,
+            spatialReference: { wkid: 4326 },
+          });
+
+          const startStop = new Graphic({
+            geometry: startPoint,
+            symbol: {
+              type: "simple-marker",
+              color: "green",
+              size: "12px",
+            },
+            attributes: {
+              Name: `${trip.pickup_location}`,
+              Description: "Starting point of the route",
+            },
+            popupTemplate: new PopupTemplate({
+              title: "{Name}",
+              content: "{Description}",
+            }),
+          });
+
+          const endStop = new Graphic({
+            geometry: endPoint,
+            symbol: {
+              type: "simple-marker",
+              color: "red",
+              size: "12px",
+            },
+            attributes: {
+              Name: `${trip.dropoff_location}`,
+              Description: "End point of the route",
+            },
+            popupTemplate: new PopupTemplate({
+              title: "{Name}",
+              content: "{Description}",
+            }),
+          });
+
+          routeLayer.stops = new FeatureSet({
+            features: [startStop, endStop],
+          });
+
+          await routeLayer.load();
+          console.log("RouteLayer loaded:", routeLayer.loaded);
+
+          const routeParams = {
+            stops: new FeatureSet({
+              features: [startStop, endStop],
+            }),
+            returnDirections: true,
+            returnRoutes: true,
+            returnStops: true,
+            directionLanguage: "en",
+          };
+          const routeResult = await routeLayer.solve(routeParams);
+
+          if (
+            routeResult &&
+            routeResult.routeInfo &&
+            routeResult.routeInfo.geometry
+          ) {
+            const routeGeometry = routeResult.routeInfo.geometry;
+            const routeGraphic = new Graphic({
+              geometry: routeGeometry,
+              symbol: {
+                type: "simple-line",
+                color: "blue",
+                width: 2,
+              },
+            });
+            view.graphics.add(routeGraphic);
+            view.goTo(routeGeometry);
+            view.graphics.addMany([startStop, endStop, ...stops]);
+
+            const directionsWidget = new Directions({
+              view: view,
+              layer: routeResult,
+            });
+            view.ui.add(directionsWidget, "top-right");
+            console.log("Directions widget initialized:", directionsWidget);
+          } else {
+            console.error(
+              "No valid route geometry found in result:",
+              routeResult
+            );
+            console.log("RouteInfo contents:", routeResult.routeInfo);
+          }
+        } catch (error) {
+          console.error("Route error details:", {
+            name: error.name,
+            message: error.message,
+            details: error.details,
+            stack: error.stack,
+          });
+        }
+      });
+
+      return () => {
+        if (view) {
+          view.destroy();
+        }
+      };
     }
-  }, []);
+  }, [trip, entries, stops]);
 
   return (
     <div
-      className="mapDiv"
+      className="mapDiv "
       ref={mapDiv}
-      style={{ height: "50vh", width: "50%" }}
+      style={{ height: "50vh", width: "100%" }}
     ></div>
   );
 };
 
-export default MapComponent;
+export default MapCard;

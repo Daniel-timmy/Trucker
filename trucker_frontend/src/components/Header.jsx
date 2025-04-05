@@ -37,7 +37,6 @@ const Header = () => {
     const decoded = jwtDecode(token);
     const tokenExpiration = decoded.exp;
     const now = Date.now() / 1000;
-    console.log(decoded.user_id);
 
     if (tokenExpiration < now) {
       await refreshToken();

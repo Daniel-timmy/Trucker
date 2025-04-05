@@ -8,7 +8,7 @@ import TripPage from "./pages/TripPage";
 import UpdateTripPage from "./pages/UpdateTripPage";
 import CreateTripPage from "./pages/CreateTripPage";
 import Dashboard from "./pages/Dashboard";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 
 function Logout() {

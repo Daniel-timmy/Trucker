@@ -40,6 +40,10 @@ class DriverSerializer(serializers.ModelSerializer):
             raise ValidationError('An error occurred during registration.')
 
 class TripSerializer(serializers.ModelSerializer):
+    total_mileage = serializers.ReadOnlyField()
+    refuel = serializers.ReadOnlyField()
+    miles_to_refuel = serializers.ReadOnlyField()
+    last_refuel = serializers.ReadOnlyField()
     class Meta:
         model = Trip
         fields = ['id',
@@ -54,8 +58,12 @@ class TripSerializer(serializers.ModelSerializer):
                    'start_date', 
                    'end_date', 
                    'end_coords',
-                    'start_coords' ]
-        read_only_fields = ['driver', 'end_coords', 'start_coords']
+                    'start_coords',
+                     'last_refuel_mileage',
+                     'total_mileage',
+                     'refuel',
+                     'miles_to_refuel', 'last_refuel']
+        read_only_fields = ['driver', 'end_coords', 'start_coords', 'last_refuel_mileage']
     
     def create(self, validated_data):
         request = self.context.get('request')
@@ -98,6 +106,8 @@ class TripSerializer(serializers.ModelSerializer):
                 return trip
         except Exception as e:
             raise ValidationError(f'An error occurred during trip creation.{e} { self.context}')
+        
+    
 
 
 class LogSheetSerializer(serializers.ModelSerializer):

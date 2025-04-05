@@ -124,6 +124,32 @@ class Trip(models.Model):
     trailer_no = models.CharField(max_length=25)#A list is more suitable since there may be multiple trialers
     start_coords = models.JSONField(default=dict)
     end_coords = models.JSONField(default=dict)
+    last_refuel = models.DateField(null=True)
+    last_refuel_mileage = models.FloatField(default=0.0)
+
+    @property
+    def total_mileage(self):
+        """
+        Calculate the total mileage for the trip.
+        """
+        total_mileage = 0
+        logsheets = self.logsheet_set.all()
+        for logsheet in logsheets:
+            total_mileage += logsheet.total_mileage
+        return total_mileage
+    
+    @property
+    def refuel(self):
+        if self.total_mileage - self.last_refuel_mileage >= 900:
+            return True
+        return False
+    
+    @property
+    def miles_to_refuel(self):
+        """
+        Calculate the miles to refuel for the trip.
+        """
+        return 1000 - (self.total_mileage - self.last_refuel_mileage)
 
 class LogSheet(models.Model):
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
@@ -140,6 +166,8 @@ class LogSheet(models.Model):
     on_duty = models.FloatField(default=0.0)
     berth   = models.FloatField(default=0.0)
     driving = models.FloatField(default=0.0)
+
+    
 
 class LogEntry(models.Model):
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)

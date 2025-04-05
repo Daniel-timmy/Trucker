@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import DashboardCard from "../components/DashboardCard";
 import Header from "../components/Header";
 import Footer from "../components/Footer2";
-// import MapCard from "../components/Map";
 import TripCard from "../components/TripCard";
 import LogCard from "../components/LogCard";
 import { Button, Modal, Form } from "react-bootstrap";
@@ -11,13 +10,12 @@ import { ACCESS_TOKEN } from "../constants";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import LoadingIndicator from "../components/LoadingIndicator";
-import MapComponent from "../components/MapArc";
+import MapCard from "../components/MapArc";
 
 const Dashboard = () => {
   const [id, setId] = useState("");
   const [driver, setDriver] = useState({});
   const [logsheets, setLogSheets] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [logLoading, setLogLoading] = useState(false);
   const [tripLoading, setTripLoading] = useState(false);
   const [currentTrip, setCurrentTrip] = useState(null);
@@ -28,7 +26,6 @@ const Dashboard = () => {
 
   const handleModalClose = () => setShowModal(false);
   const handleModalShow = () => setShowModal(true);
-  // arcgis AAPTxy8BH1VEsoebNVZXo8HurAx5mJ9vyrkr344PTwYgRxr5HDfd5uahvlyy6byEnX_DEbfo0riRB8iN3V8AcIlpKiVxZ_Mr6b21VNGmzBTGfBapfxeK2AeZmu9OxoWvYT3bsFf7QJJd51R5IeXi9g2YD11a8IiDgaRmtgO6pqniBvWAwL31VmEDCLW8YpGwdqhBv-5o44gyW2SkEV3jldMOMYtxuxFmBpHYP-qjGMTWINc.AT1_JNLZllBL
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -68,7 +65,7 @@ const Dashboard = () => {
         setLogSheets(data.reverse());
         setLogLoading(false);
       })
-      .catch((err) => alert(err))
+      .catch((err) => console.log(err))
       .finally(() => setLogLoading(false));
   };
 
@@ -83,7 +80,7 @@ const Dashboard = () => {
         setTripLoading(false);
         setId(currentTrip.id);
       })
-      .catch((err) => alert(err))
+      .catch((err) => console.log(err))
       .finally(setTripLoading(false));
   };
 
@@ -105,7 +102,7 @@ const Dashboard = () => {
         .then((data) => {
           setDriver(data);
         })
-        .catch((err) => alert(err));
+        .catch((err) => console.log(err));
     }
   };
 
@@ -118,14 +115,13 @@ const Dashboard = () => {
     if (currentTrip !== undefined) {
       getLogSheets();
     }
-  }, [currentTrip]);
+  }, [currentTrip, showModal]);
 
   console.log(`${currentTrip}`);
 
   return (
     <>
       <Header />
-      <MapComponent />
       <DashboardCard driver={driver} />
       <div className="d-flex align-items-center justify-content-between mt-5 px-5">
         <h2>Current Trip</h2>
@@ -175,14 +171,12 @@ const Dashboard = () => {
           </ul>
         )}
       </div>
+      <div className="d-flex align-items-center justify-content-between mt-5 px-5">
+        <h2>Map</h2>
+      </div>
+      <hr />
+      <MapCard trip={currentTrip} />
 
-      {/* <MapCard positions={[15.505, -0.09]} /> */}
-      {/* <MapCard
-        start={[40.7128, -74.006]}
-        end={[34.0522, -118.2437]}
-        entries={tripEntries.reverse()}
-        trip={currentTrip}
-      /> */}
       <Footer />
 
       <Modal show={showModal} onHide={handleModalClose}>

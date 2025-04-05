@@ -83,6 +83,9 @@ const DashboardCard = ({ driver }) => {
           </Card.Body>
         </Col>
       </Row>
+      <Card.Footer className="text-muted text-center">
+        <small>Driver Information</small>
+      </Card.Footer>
     </Card>
   );
 };
