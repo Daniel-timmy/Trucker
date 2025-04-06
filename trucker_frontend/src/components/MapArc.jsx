@@ -94,15 +94,15 @@ const MapCard = ({ trip }) => {
         basemap: "dark-gray-vector",
       });
 
-      const routeLayer = new RouteLayer();
-      webmap.add(routeLayer);
-
       const view = new MapView({
         container: mapDiv.current,
         map: webmap,
         center: [-117.149, 32.7353],
         scale: 10000000,
       });
+
+      const routeLayer = new RouteLayer();
+      webmap.add(routeLayer);
 
       view.when(async () => {
         try {
