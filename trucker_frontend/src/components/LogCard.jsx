@@ -463,7 +463,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
               <Form.Label>Duration</Form.Label>
               <Form.Control
                 type="text"
-                pattern="^[0-2][0-3]:(00|15|30|45)$"
+                pattern="^[0-2][0-9]:(00|15|30|45)$"
                 required
                 placeholder="E.g 01:45"
                 value={duration}
@@ -471,7 +471,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
               />
               <Form.Text className="text-danger">
                 {duration &&
-                  !/^[0-2][0-3]:(00|15|30|45)$/.test(duration) &&
+                  !/^[0-2][0-9]:(00|15|30|45)$/.test(duration) &&
                   "Invalid Format. The hours can range from 00-23 but the min is restricted to 00, 15, 30, and 45"}
               </Form.Text>
             </Form.Group>

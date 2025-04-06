@@ -46,7 +46,7 @@ class Driver(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    phone_number = models.IntegerField(null=True)
+    phone_number = models.BigIntegerField(null=True)
     password = models.CharField(max_length=255)
     cycle_hours = models.FloatField(default=70.0)  # 70hrs/8days
     cycle_days = models.FloatField(default=8)

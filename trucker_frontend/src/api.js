@@ -22,3 +22,15 @@ api.interceptors.request.use(
 );
 
 export default api;
+
+// const users = {
+//   a1: { name: "Alice", age: 22 },
+//   b2: { name: "Bob", age: 28 },
+//   c3: { name: "Charlie", age: 25 },
+// };
+
+// const fer = Object.entries(users).filter(([key, value]) => value.age > 23);
+// console.log(fer);
+
+// const fr = Object.fromEntries(fer);
+// console.log(fr);

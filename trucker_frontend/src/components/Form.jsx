@@ -52,7 +52,7 @@ const RegisterForm = ({ route, method }) => {
         navigate("/");
       }
     } catch (error) {
-      alert(error);
+      alert("Invalid credentials or user already exists.");
     } finally {
       setLoading(false);
     }

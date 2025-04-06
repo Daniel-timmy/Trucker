@@ -17,6 +17,18 @@ class RegisterView(CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = DriverSerializer
     queryset = Driver.objects.all()
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            driver = serializer.save()
+            response_data = self.get_serializer(driver).data 
+        
+            return Response({'success': 'true', 'data': response_data})
+        except Exception as e:
+            print('Error in RegisterView post method')
+            print(e)
+            return Response({'success': 'false', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DriverModifyView(RetrieveUpdateDestroyAPIView):
     """
@@ -29,6 +41,7 @@ class DriverModifyView(RetrieveUpdateDestroyAPIView):
    
     def get_queryset(self):
         id = self.request.parser_context['kwargs'].get('id') 
+
         return Driver.objects.filter(id=id)
 
 class TripView(ListCreateAPIView):
