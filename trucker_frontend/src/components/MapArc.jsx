@@ -32,8 +32,6 @@ const MapCard = ({ trip }) => {
   }, [trip]);
 
   useEffect(() => {
-    console.log("APIKEY");
-    console.log(API_KEY);
     if (entries.length === 0) {
       return;
     }

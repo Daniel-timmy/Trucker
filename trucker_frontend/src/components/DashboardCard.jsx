@@ -34,7 +34,6 @@ const DashboardCard = ({ driver }) => {
     { label: "Total On duty time", value: driver.total_on_duty_time },
     { label: "Total Driving time", value: driver.total_driving_time },
   ];
-  console.log(driver);
 
   return (
     <Card
