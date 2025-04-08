@@ -11,6 +11,7 @@ class DriverSerializer(serializers.ModelSerializer):
     total_hours = serializers.ReadOnlyField()
     total_on_duty_time = serializers.ReadOnlyField()
     total_driving_time = serializers.ReadOnlyField()
+    current_cycle_used = serializers.ReadOnlyField()
 
     class Meta:
         model = Driver
@@ -19,7 +20,7 @@ class DriverSerializer(serializers.ModelSerializer):
                     'cycle_hours', 'cycle_days', 'driver_number',
                       'start_date', 'total_mileage', 'total_hours',
                         'total_on_duty_time', 'total_driving_time',]
-        read_only_fields = ['id', 'current_cycle_used', 'cycle_hours', 'cycle_days', 'driver_number', 'start_date']
+        read_only_fields = ['id', 'cycle_hours', 'cycle_days', 'driver_number', 'start_date']
 
     def create(self, validated_data):
         try:
@@ -119,10 +120,10 @@ class LogSheetSerializer(serializers.ModelSerializer):
         driver = Driver.objects.filter(id=request.user).first()
         trip_id = request.parser_context['kwargs'].get('id') 
         todays_date = datetime.now().strftime('%Y-%m-%d')
-        seventy_hour_window_checker(driver=driver)
 
         try:
             with transaction.atomic():
+                seventy_hour_window_checker(driver=driver)
                 if not Trip.objects.filter(driver=driver, status='in_progress', id=trip_id).exists():
                     raise ValidationError({'error': 'Incorrect trip id','success': 'False'})
                 if LogSheet.objects.filter(trip_id=trip_id, date=todays_date).exists():
@@ -137,6 +138,7 @@ class LogSheetSerializer(serializers.ModelSerializer):
                     shipper=validated_data['shipper'],
                     commodity=validated_data['commodity'],
                 )
+                driver.save()
                 logsheet.save()
                 return logsheet
                     
@@ -168,10 +170,10 @@ class LogEntrySerializer(serializers.ModelSerializer):
         driving_time = 11.0
 
         driver = Driver.objects.filter(id=request.user).first()
-        seventy_hour_window_checker(driver=driver)
 
         try:
             with transaction.atomic():
+                seventy_hour_window_checker(driver=driver)
                 if not Trip.objects.filter(driver=user, status='in_progress', id=trip_id).exists():
                     raise ValidationError({'error': 'Incorrect trip id', 'success': 'False'})
                 trip = Trip.objects.filter(id=trip_id).first()
@@ -184,7 +186,6 @@ class LogEntrySerializer(serializers.ModelSerializer):
                 end_time_datetime_obj = start_time_datetime_obj + timedelta(hours=int(span[0]), minutes=int(span[1]))
                 end_time = end_time_datetime_obj.time()
                 
-               
                 logsheet = LogSheet.objects.filter(id=sheet_id, trip_id=trip.id, date=todays_date).first()
                 prev_logentry = LogEntry.objects.filter(logsheet=logsheet).order_by('-start_time').first()
                 if datetime.combine(datetime.today(), start_time) > datetime.now():
@@ -194,7 +195,10 @@ class LogEntrySerializer(serializers.ModelSerializer):
                     raise ValidationError(f'Your start time must be the same as the end time of the previous log entry {prev_logentry.end_time}')
 
                 if start_time > end_time:
-                    raise ValidationError('Your duration must be within 24hours')
+                    if end_time.hour == 0 and end_time.minute == 0 and end_time.second == 0: # check if it is midnigth
+                        pass
+                    else:
+                        raise ValidationError('Your duration must be within 24hours')
                 
                 location_coords = geocode_address(validated_data['location'])
                 
@@ -215,19 +219,20 @@ class LogEntrySerializer(serializers.ModelSerializer):
                 total_time = float(span[0]) + (int(span[1]) / 60) 
 
                 if logsheet.on_duty_start_time is not None:
-                    current_datetime = datetime.now()
-                    start_time_obj = datetime.combine(datetime.today(), logsheet.on_duty_start_time)
-                    on_duty_duration = current_datetime - start_time_obj
+                    activity_end_datetime = datetime.combine(datetime.today(), end_time)
+
+                    todays_start_datetime = datetime.combine(datetime.today(), logsheet.on_duty_start_time)
+                    on_duty_duration = activity_end_datetime - todays_start_datetime
                 
                 if validated_data['duty_status'] == 'sleeper':
                     logsheet.berth += total_time
                 elif validated_data['duty_status'] == 'driving':
                     if logsheet.on_duty_start_time == None:
                         logsheet.on_duty_start_time = start_time
-                        current_datetime = datetime.now()
-                        start_time_obj = datetime.combine(datetime.today(), logsheet.on_duty_start_time)
-                        on_duty_duration = current_datetime - start_time_obj
-                    
+                        activity_end_datetime = datetime.combine(datetime.today(), end_time)
+                        todays_start_datetime = datetime.combine(datetime.today(), logsheet.on_duty_start_time)
+
+                        on_duty_duration = activity_end_datetime - todays_start_datetime                    
                     
                     if on_duty_duration and on_duty_duration >= timedelta(hours=14): 
                         raise ValidationError('14-hr Window exceeded: You can not go on anymore Driving time.')
@@ -235,8 +240,8 @@ class LogEntrySerializer(serializers.ModelSerializer):
                         raise ValidationError('You have max out your driving time')
                     elif logsheet.driving + total_time > driving_time:
                         raise ValidationError(f'You have {driving_time - logsheet.driving} hours left. Choose within that range.')
-                    else:
-                        logsheet.driving += total_time
+                    
+                    logsheet.driving += total_time
 
                 elif validated_data['duty_status'] == 'on_duty':
                     if logsheet.on_duty_start_time == None:

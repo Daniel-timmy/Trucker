@@ -215,7 +215,6 @@ class TripLogEntriesView(ListAPIView):
         trip = Trip.objects.filter(id=trip_id)
         if not trip:
             return LogEntry.objects.none()  
-        
         return LogEntry.objects.filter(trip=trip_id)
     
 class SheetsLogEntryListView(ListCreateAPIView):
@@ -226,4 +225,4 @@ class SheetsLogEntryListView(ListCreateAPIView):
         sheet_id = self.request.parser_context['kwargs'].get('id') 
         if not sheet_id:
             return LogEntry.objects.none()
-        return LogEntry.objects.filter(logsheet_id=sheet_id)
+        return LogEntry.objects.filter(logsheet_id=sheet_id).order_by('-start_time').reverse()

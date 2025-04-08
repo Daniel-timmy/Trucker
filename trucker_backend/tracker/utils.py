@@ -12,9 +12,10 @@ API_KEY = os.environ.get('API_KEY')
 
 def seventy_hour_window_checker(driver):
     
-    days = (datetime.now().date() - driver.start_date).days
     if not driver.start_date:
         return
+    days = (datetime.now().date() - driver.start_date).days
+    
     
     if driver.start_date and driver.start_date > datetime.now().date():
         remaining_days = driver.start_date - datetime.now().date()
@@ -39,6 +40,11 @@ def seventy_hour_window_checker(driver):
         raise ValidationError('You have exhausted your 70 hours per eight days window wait for another 34 hours to resume duty')
     else:
         driver.current_cycle_used = total['total_driving_time'] + total['total_on_duty_time']
+        print("heeree")
+        print(driver.current_cycle_used)
+    driver.save()
+    
+  
 
 
 def geocode_address(address):

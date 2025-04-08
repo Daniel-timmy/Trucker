@@ -8,15 +8,18 @@ import {
   Table,
   Modal,
   Form,
+  Fade,
 } from "react-bootstrap";
 import api from "../api";
 import LineGraph from "./LineGraph";
 import { useMediaQuery } from "react-responsive";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import LoadingIndicator from "./LoadingIndicator";
 
 const LogCard = ({ logsheet, trip, driver }) => {
   const [isContainerVisible, setIsContainerVisible] = useState(false);
+  const [newEntryLoading, setNewEntryLoading] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [location, setLocation] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -84,6 +87,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
 
   const handleSubmitOverlay = async (e) => {
     e.preventDefault();
+    setNewEntryLoading(true);
     const log_id = logsheet.id;
     const trip_id = trip.id;
     try {
@@ -102,6 +106,8 @@ const LogCard = ({ logsheet, trip, driver }) => {
       setErrorDetails(
         error.response?.data?.details || "An unexpected error occurred."
       );
+    } finally {
+      setNewEntryLoading(false);
     }
   };
 
@@ -494,7 +500,10 @@ const LogCard = ({ logsheet, trip, driver }) => {
                 placeholder="Enter location"
                 required
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setErrorDetails("");
+                }}
               />
             </Form.Group>
 
@@ -516,7 +525,10 @@ const LogCard = ({ logsheet, trip, driver }) => {
                 required
                 placeholder="E.g 01:45"
                 value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+                onChange={(e) => {
+                  setDuration(e.target.value);
+                  setErrorDetails("");
+                }}
               />
               <Form.Text className="text-danger">
                 {duration &&
@@ -529,7 +541,10 @@ const LogCard = ({ logsheet, trip, driver }) => {
               <Form.Select
                 value={dutyStatus}
                 required
-                onChange={(e) => setDutyStatus(e.target.value)}
+                onChange={(e) => {
+                  setDutyStatus(e.target.value);
+                  setErrorDetails("");
+                }}
               >
                 <option value="off_duty">Off Duty</option>
                 <option value="sleeper">Sleeper</option>
@@ -543,7 +558,10 @@ const LogCard = ({ logsheet, trip, driver }) => {
                 type="text"
                 placeholder="Enter activity(Scaling, DropOff, refueling e.t.c)"
                 value={activity}
-                onChange={(e) => setActivity(e.target.value)}
+                onChange={(e) => {
+                  setActivity(e.target.value);
+                  setErrorDetails("");
+                }}
                 pattern="^.{5,}$"
                 required
               />
@@ -553,10 +571,13 @@ const LogCard = ({ logsheet, trip, driver }) => {
                   "Activity can not be empty and must be at least 5 characters"}
               </Form.Text>
             </Form.Group>
-
-            <Button variant="primary" type="submit" className="w-100 mt-3">
-              Save Entry
-            </Button>
+            {newEntryLoading ? (
+              <LoadingIndicator />
+            ) : (
+              <Button variant="primary" type="submit" className="w-100 mt-3">
+                Save Entry
+              </Button>
+            )}
           </Form>
           {errorDetails && (
             <div className="mt-3 text-danger text-center">

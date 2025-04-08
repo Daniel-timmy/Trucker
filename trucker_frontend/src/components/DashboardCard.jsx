@@ -8,9 +8,9 @@ const DashboardCard = ({ driver }) => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
-        setVisibleFields(3); // Mobile
+        setVisibleFields(4); // Mobile
       } else if (window.innerWidth < 992) {
-        setVisibleFields(4); // Tablet
+        setVisibleFields(6); // Tablet
       } else {
         setVisibleFields(10); // Desktop
       }
@@ -26,10 +26,11 @@ const DashboardCard = ({ driver }) => {
   const fields = [
     { label: "Full Name", value: driver.first_name + " " + driver.last_name },
     { label: "Email", value: driver.email },
-    { label: "Cycle Hrs/8days", value: driver.cycle_hours },
+    { label: "Current cycle used(hrs)", value: driver.current_cycle_used },
+
     { label: "Phone No", value: driver.phone_number },
     { label: "Driver No", value: driver.driver_number },
-    { label: "Current cycle used", value: driver.current_cycle_used },
+    { label: "Cycle Hrs/8days", value: driver.cycle_hours },
     { label: "Total mileage", value: driver.total_mileage },
     { label: "Total On duty time", value: driver.total_on_duty_time },
     { label: "Total Driving time", value: driver.total_driving_time },
