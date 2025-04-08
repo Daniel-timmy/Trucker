@@ -68,7 +68,7 @@ const MapCard = ({ trip }) => {
           geometry: point,
           symbol: {
             type: "simple-marker",
-            color: "blue",
+            color: "yellow",
             size: "12px",
           },
           attributes: {
@@ -207,7 +207,7 @@ const MapCard = ({ trip }) => {
               "No valid route geometry found in result:",
               routeResult
             );
-            console.log("RouteInfo contents:", routeResult.routeInfo);
+            // console.log("RouteInfo contents:", routeResult.routeInfo);
           }
         } catch (error) {
           console.error("Route error details:", {

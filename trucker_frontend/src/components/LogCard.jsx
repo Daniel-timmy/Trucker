@@ -12,12 +12,12 @@ import {
 import api from "../api";
 import LineGraph from "./LineGraph";
 import { useMediaQuery } from "react-responsive";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const LogCard = ({ logsheet, trip, driver }) => {
   const [isContainerVisible, setIsContainerVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
-  // const [lat, setLat] = useState("");
-  // const [long, setLong] = useState("");
   const [location, setLocation] = useState("");
   const [startTime, setStartTime] = useState("");
   const [dutyStatus, setDutyStatus] = useState("off_duty");
@@ -128,39 +128,41 @@ const LogCard = ({ logsheet, trip, driver }) => {
   }, [logsheet.id, showOverlay]);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  // const logSheetRef = useRef(null);
+  const logSheetRef = useRef(null);
 
-  // const handleDownloadPDF = () => {
-  //   const element = logSheetRef.current;
+  const handleDownloadPDF = () => {
+    const element = logSheetRef.current;
 
-  //   html2canvas(element, {
-  //     scale: 2, // Increase resolution for better quality
-  //   }).then((canvas) => {
-  //     const imgData = canvas.toDataURL('image/png');
-  //     const pdf = new jsPDF('p', 'mm', 'a4'); // Portrait, millimeters, A4 size
+    html2canvas(element, {
+      scale: 2,
+    })
+      .then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a4");
 
-  //     const imgWidth = 190; // Width in mm (A4 is 210mm wide, leave margins)
-  //     const pageHeight = 295; // A4 height in mm
-  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  //     let heightLeft = imgHeight;
+        const imgWidth = 190;
+        const pageHeight = 295;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
 
-  //     let position = 0;
+        let position = 0;
 
-  //     pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-  //     heightLeft -= pageHeight;
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
 
-  //     while (heightLeft > 0) {
-  //       position = heightLeft - imgHeight;
-  //       pdf.addPage();
-  //       pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-  //       heightLeft -= pageHeight;
-  //     }
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
 
-  //     pdf.save('log-sheet.pdf');
-  //   }).catch((error) => {
-  //     console.error('Error generating PDF:', error);
-  //   });
-  // };
+        pdf.save("log-sheet.pdf");
+      })
+      .catch((error) => {
+        console.error("Error generating PDF:", error);
+      });
+  };
 
   return (
     <>
@@ -198,7 +200,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
             <Modal.Header closeButton>
               <Modal.Title>Driver's Record of Duty Status</Modal.Title>
             </Modal.Header>
-            <Modal.Body>
+            <Modal.Body ref={logSheetRef}>
               <Container fluid className="p-3">
                 <h4 className="text-center mb-4" style={{ fontSize: "1.2em" }}>
                   Driver's Record of Duty Status
@@ -301,10 +303,40 @@ const LogCard = ({ logsheet, trip, driver }) => {
                 {logsheet.date === today && (
                   <div className="d-flex justify-content-center gap-3 mt-4">
                     <Button variant="success" onClick={handleNewEntryClick}>
-                      New Entry
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24px"
+                        viewBox="0 0 24 24"
+                        width="24px"
+                        fill="#1f1f1f"
+                      >
+                        <path d="M0 0h24v24H0V0z" fill="none" />
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                      </svg>
                     </Button>
-                    <Button variant="primary" onClick={handleUpdateLogSheet}>
+                    <Button
+                      variant="primary"
+                      className="text-small"
+                      onClick={handleUpdateLogSheet}
+                    >
                       Update Logsheet
+                    </Button>
+                    <Button variant="outline-dark" onClick={handleDownloadPDF}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        enable-background="new 0 0 24 24"
+                        height="24px"
+                        viewBox="0 0 24 24"
+                        width="24px"
+                        fill="#1f1f1f"
+                      >
+                        <g>
+                          <rect fill="none" height="24" width="24" />
+                        </g>
+                        <g>
+                          <path d="M18,15v3H6v-3H4v3c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2v-3H18z M17,11l-1.41-1.41L13,12.17V4h-2v8.17L8.41,9.59L7,11l5,5 L17,11z" />
+                        </g>
+                      </svg>
                     </Button>
                   </div>
                 )}
@@ -315,6 +347,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
           <Card
             className="mb-3 mx-auto"
             bg="light"
+            ref={logSheetRef}
             style={{
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               borderRadius: "10px",
@@ -423,6 +456,24 @@ const LogCard = ({ logsheet, trip, driver }) => {
                   </Button>
                   <Button variant="primary" onClick={handleUpdateLogSheet}>
                     Update Logsheet
+                  </Button>
+
+                  <Button variant="outline-dark" onClick={handleDownloadPDF}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      enable-background="new 0 0 24 24"
+                      height="24px"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                      fill="#1f1f1f"
+                    >
+                      <g>
+                        <rect fill="none" height="24" width="24" />
+                      </g>
+                      <g>
+                        <path d="M18,15v3H6v-3H4v3c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2v-3H18z M17,11l-1.41-1.41L13,12.17V4h-2v8.17L8.41,9.59L7,11l5,5 L17,11z" />
+                      </g>
+                    </svg>
                   </Button>
                 </div>
               )}

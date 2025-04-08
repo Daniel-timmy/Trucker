@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django_ulid.models import ULIDField, default
 import uuid
-import ulid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from datetime import time
 

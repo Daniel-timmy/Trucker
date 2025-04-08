@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 from .utils import seventy_hour_window_checker, geocode_address  
 
 
-
-
 class DriverSerializer(serializers.ModelSerializer):
     total_mileage = serializers.ReadOnlyField()
     total_hours = serializers.ReadOnlyField()
@@ -215,17 +213,22 @@ class LogEntrySerializer(serializers.ModelSerializer):
                     activity=validated_data['activity']
                 )
                 total_time = float(span[0]) + (int(span[1]) / 60) 
-                if logsheet.on_duty_start_time != None:
+
+                if logsheet.on_duty_start_time is not None:
                     current_datetime = datetime.now()
                     start_time_obj = datetime.combine(datetime.today(), logsheet.on_duty_start_time)
                     on_duty_duration = current_datetime - start_time_obj
-                    print(on_duty_duration) 
                 
                 if validated_data['duty_status'] == 'sleeper':
                     logsheet.berth += total_time
                 elif validated_data['duty_status'] == 'driving':
                     if logsheet.on_duty_start_time == None:
                         logsheet.on_duty_start_time = start_time
+                        current_datetime = datetime.now()
+                        start_time_obj = datetime.combine(datetime.today(), logsheet.on_duty_start_time)
+                        on_duty_duration = current_datetime - start_time_obj
+                    
+                    
                     if on_duty_duration and on_duty_duration >= timedelta(hours=14): 
                         raise ValidationError('14-hr Window exceeded: You can not go on anymore Driving time.')
                     if logsheet.driving >= driving_time:
