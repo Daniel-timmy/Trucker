@@ -48,10 +48,10 @@ def seventy_hour_window_checker(driver):
 
 
 def geocode_address(address):
-    cache_key = f"geocode_{"".join(address.split(" "))}"
-    cached_result = cache.get(cache_key)
-    if cached_result:
-        return cached_result
+    # cache_key = f'geocode_{"".join(address.split(" "))}'
+    # cached_result = cache.get(cache_key)
+    # if cached_result:
+    #     return cached_result
     url = f"https://us1.locationiq.com/v1/search?key={API_KEY}&q={address}&format=json&"
 
     headers = {"accept": "application/json"}
@@ -65,5 +65,5 @@ def geocode_address(address):
     
     result = {'longitude': data[0]['lon'], "latitude": data[0]['lat']}
 
-    cache.set(cache_key, result, timeout=86400)
+    # cache.set(cache_key, result, timeout=86400)
     return result
