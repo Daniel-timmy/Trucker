@@ -10,7 +10,6 @@ L.Marker.prototype.options.icon = L.icon({
 
 export default function Routing({ waypoints, info }) {
   const map = useMap();
-  console.log(waypoints);
 
   useEffect(() => {
     if (!map) return;

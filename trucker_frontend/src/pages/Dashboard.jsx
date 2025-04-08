@@ -33,7 +33,6 @@ const Dashboard = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data Submitted:", formData);
     const id = currentTrip.id;
     const data = {
       shipper: formData.shipper,
@@ -61,7 +60,6 @@ const Dashboard = () => {
       .get(`logsheets/${id}/trips/`)
       .then((res) => res.data)
       .then((data) => {
-        console.log(data);
         setLogSheets(data.reverse());
         setLogLoading(false);
       })
@@ -116,8 +114,6 @@ const Dashboard = () => {
       getLogSheets();
     }
   }, [currentTrip, showModal]);
-
-  console.log(`${currentTrip}`);
 
   return (
     <>

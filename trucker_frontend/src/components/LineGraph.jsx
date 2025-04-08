@@ -41,7 +41,6 @@ const LineGraph = ({ entries }) => {
       return updatedPoints;
     });
   }, [entries]);
-  console.log(points);
 
   useEffect(() => {
     const screenWidth = window.innerWidth;
@@ -172,7 +171,6 @@ const LineGraph = ({ entries }) => {
           .transition()
           .duration(200)
           .style("opacity", 1);
-        // console.log("Tooltip created:", tooltip.node());
       });
 
     d3.select("body").on("click.body", (event) => {

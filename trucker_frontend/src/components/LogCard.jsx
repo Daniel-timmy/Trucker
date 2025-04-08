@@ -62,7 +62,6 @@ const LogCard = ({ logsheet, trip, driver }) => {
   const getEntriesForTrip = async () => {
     try {
       const res = await api.get(`logentries/${logsheet.id}/logsheets/`);
-      console.log(res.data);
       setEntries(res.data);
     } catch (error) {
       alert(error);
@@ -76,7 +75,8 @@ const LogCard = ({ logsheet, trip, driver }) => {
         total_mileage: updatedMileage,
         remarks: updatedRemarks,
       });
-      console.log("Logsheet updated successfully:", res.data);
+      alert("Logsheet updated successfully");
+      // console.log("Logsheet updated successfully:", res.data);
       setShowUpdateModal(false);
     } catch (error) {
       console.error("Error updating logsheet:", error.response?.data || error);
@@ -87,17 +87,6 @@ const LogCard = ({ logsheet, trip, driver }) => {
     e.preventDefault();
     const log_id = logsheet.id;
     const trip_id = trip.id;
-    console.log({
-      lat,
-      long,
-      location,
-      duration,
-      dutyStatus,
-      activity,
-      startTime,
-      log_id,
-      trip_id,
-    });
     try {
       const res = await api.post(`logentries/${log_id}/logsheet/`, {
         lat: lat,
@@ -116,7 +105,6 @@ const LogCard = ({ logsheet, trip, driver }) => {
       setErrorDetails(
         error.response?.data?.details || "An unexpected error occurred."
       );
-      console.log(error.response?.data?.details);
     }
   };
 
@@ -128,10 +116,12 @@ const LogCard = ({ logsheet, trip, driver }) => {
           setLong(position.coords.longitude);
         },
         (error) => {
+          alert("Error getting location");
           console.error("Error getting location:", error);
         }
       );
     } else {
+      alert("Geolocation is not supported by this browser");
       console.error("Geolocation is not supported by this browser.");
     }
   }, []);

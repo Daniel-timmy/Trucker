@@ -31,7 +31,6 @@ const RegisterForm = ({ route, method }) => {
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
-    // console.log(import.meta.env.VITE_API_URL);
 
     try {
       if (method === "register") {

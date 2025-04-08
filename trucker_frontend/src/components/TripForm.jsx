@@ -62,7 +62,6 @@ const TripForm = ({ route, method, trip }) => {
     }
 
     setLoading(true);
-    console.log(import.meta.env.VITE_API_URL);
 
     try {
       if (method === "new") {

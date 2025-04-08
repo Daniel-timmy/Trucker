@@ -56,7 +56,6 @@ const MapCard = ({ positions, entries, trip }) => {
   useEffect(() => {
     if (waypoints !== undefined) {
       setInfo();
-      console.log(entryInfo);
     }
   }, [waypoints, entries]);
 
