@@ -56,7 +56,7 @@ def geocode_address(address):
 
     data = response.json()
     if not data:
-        raise ValidationError(f"NO candidates found for address: {address}")
+        raise ValidationError(f"No coordinates found for address: {address}")
     
     result = {'longitude': data[0]['lon'], "latitude": data[0]['lat']}
 

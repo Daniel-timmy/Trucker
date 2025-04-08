@@ -158,7 +158,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
                    'start_time', 'end_time', 'lat',
                      'long', 'location', 'duration',
                        'duty_status', 'activity', 'log_id', 'trip_id', 'span', 'startTime']
-        read_only_fields = ['id', 'trip', 'logsheet', 'duration', 'start_time', 'end_time']
+        read_only_fields = ['id', 'trip', 'logsheet', 'duration', 'start_time', 'end_time', 'long', 'lat']
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -198,13 +198,15 @@ class LogEntrySerializer(serializers.ModelSerializer):
                 if start_time > end_time:
                     raise ValidationError('Your duration must be within 24hours')
                 
+                location_coords = geocode_address(validated_data['location'])
+                
         
                 duration = float(span[0]) + (float(span[1]) / 60)
                 logentry = LogEntry.objects.create(
                     trip=trip,
                     logsheet=logsheet,
-                    lat=validated_data['lat'],
-                    long=validated_data['long'],
+                    lat=float(location_coords['latitude']),
+                    long=float(location_coords['longitude']),
                     location=validated_data['location'],
                     duration=duration,
                     duty_status=validated_data['duty_status'],

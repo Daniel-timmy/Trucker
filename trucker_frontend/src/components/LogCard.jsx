@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   Button,
@@ -16,8 +16,8 @@ import { useMediaQuery } from "react-responsive";
 const LogCard = ({ logsheet, trip, driver }) => {
   const [isContainerVisible, setIsContainerVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
-  const [lat, setLat] = useState("");
-  const [long, setLong] = useState("");
+  // const [lat, setLat] = useState("");
+  // const [long, setLong] = useState("");
   const [location, setLocation] = useState("");
   const [startTime, setStartTime] = useState("");
   const [dutyStatus, setDutyStatus] = useState("off_duty");
@@ -76,7 +76,6 @@ const LogCard = ({ logsheet, trip, driver }) => {
         remarks: updatedRemarks,
       });
       alert("Logsheet updated successfully");
-      // console.log("Logsheet updated successfully:", res.data);
       setShowUpdateModal(false);
     } catch (error) {
       console.error("Error updating logsheet:", error.response?.data || error);
@@ -89,8 +88,6 @@ const LogCard = ({ logsheet, trip, driver }) => {
     const trip_id = trip.id;
     try {
       const res = await api.post(`logentries/${log_id}/logsheet/`, {
-        lat: lat,
-        long: long,
         location: location,
         span: duration,
         startTime: startTime,
@@ -108,29 +105,62 @@ const LogCard = ({ logsheet, trip, driver }) => {
     }
   };
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLat(position.coords.latitude);
-          setLong(position.coords.longitude);
-        },
-        (error) => {
-          alert("Error getting location");
-          console.error("Error getting location:", error);
-        }
-      );
-    } else {
-      alert("Geolocation is not supported by this browser");
-      console.error("Geolocation is not supported by this browser.");
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       (position) => {
+  //         setLat(position.coords.latitude);
+  //         setLong(position.coords.longitude);
+  //       },
+  //       (error) => {
+  //         alert("Error getting location");
+  //         console.error("Error getting location:", error);
+  //       }
+  //     );
+  //   } else {
+  //     alert("Geolocation is not supported by this browser");
+  //     console.error("Geolocation is not supported by this browser.");
+  //   }
+  // }, []);
 
   useEffect(() => {
     getEntriesForTrip();
   }, [logsheet.id, showOverlay]);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  // const logSheetRef = useRef(null);
+
+  // const handleDownloadPDF = () => {
+  //   const element = logSheetRef.current;
+
+  //   html2canvas(element, {
+  //     scale: 2, // Increase resolution for better quality
+  //   }).then((canvas) => {
+  //     const imgData = canvas.toDataURL('image/png');
+  //     const pdf = new jsPDF('p', 'mm', 'a4'); // Portrait, millimeters, A4 size
+
+  //     const imgWidth = 190; // Width in mm (A4 is 210mm wide, leave margins)
+  //     const pageHeight = 295; // A4 height in mm
+  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  //     let heightLeft = imgHeight;
+
+  //     let position = 0;
+
+  //     pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+  //     heightLeft -= pageHeight;
+
+  //     while (heightLeft > 0) {
+  //       position = heightLeft - imgHeight;
+  //       pdf.addPage();
+  //       pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+  //       heightLeft -= pageHeight;
+  //     }
+
+  //     pdf.save('log-sheet.pdf');
+  //   }).catch((error) => {
+  //     console.error('Error generating PDF:', error);
+  //   });
+  // };
 
   return (
     <>
@@ -406,28 +436,6 @@ const LogCard = ({ logsheet, trip, driver }) => {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmitOverlay}>
-            <Form.Group className="mb-3" controlId="formLat">
-              <Form.Label>Latitude</Form.Label>
-              <Form.Control
-                type="number"
-                step="0.000001"
-                placeholder="Enter latitude"
-                required
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="formLong">
-              <Form.Label>Longitude</Form.Label>
-              <Form.Control
-                type="number"
-                step="0.000001"
-                placeholder="Enter longitude"
-                required
-                value={long}
-                onChange={(e) => setLong(e.target.value)}
-              />
-            </Form.Group>
             <Form.Group className="mb-3" controlId="formLocation">
               <Form.Label>Location</Form.Label>
               <Form.Control
