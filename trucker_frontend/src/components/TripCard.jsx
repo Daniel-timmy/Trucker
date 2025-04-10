@@ -210,7 +210,7 @@ useEffect (()=> getDriver(), []);
       <LogCard
         key={logsheet.id}
         logsheet={logsheet}
-        trip={currentTrip}
+        trip={trip}
         driver={driver}
       />
     ))}
