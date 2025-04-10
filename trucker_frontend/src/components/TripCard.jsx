@@ -55,11 +55,11 @@ const TripCard = ({
     }
   };
   const getLogsheets = () => {
-    if (currentTrip === null) {
+    if (trip === null) {
       return;
     }
 
-    const id = currentTrip.id;
+    const id = trip.id;
     api
       .get(`logsheets/${id}/trips/`)
       .then((res) => res.data)
