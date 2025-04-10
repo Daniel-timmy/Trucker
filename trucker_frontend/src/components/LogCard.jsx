@@ -18,6 +18,7 @@ import jsPDF from "jspdf";
 import LoadingIndicator from "./LoadingIndicator";
 
 const LogCard = ({ logsheet, trip, driver }) => {
+  const [updateLogsheetLoading, setUpdateLogsheetLoading] = useState(false);
   const [isContainerVisible, setIsContainerVisible] = useState(false);
   const [newEntryLoading, setNewEntryLoading] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -72,6 +73,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
   };
 
   const handleSubmitUpdateLogSheet = async (e) => {
+    setUpdateLogsheetLoading(true);
     e.preventDefault();
     try {
       const res = await api.patch(`logsheets/${logsheet.id}/`, {
@@ -82,6 +84,8 @@ const LogCard = ({ logsheet, trip, driver }) => {
       setShowUpdateModal(false);
     } catch (error) {
       console.error("Error updating logsheet:", error.response?.data || error);
+    } finally {
+      setUpdateLogsheetLoading(false)
     }
   };
 
@@ -613,9 +617,12 @@ const LogCard = ({ logsheet, trip, driver }) => {
                 onChange={(e) => setUpdatedRemarks(e.target.value)}
               />
             </Form.Group>
-            <Button variant="primary" type="submit" className="w-100 mt-3">
+            { updateLogsheetLoading ? ( <LoadingIndicator />) : (
+      <Button variant="primary" type="submit" className="w-100 mt-3">
               Save Changes
             </Button>
+            )  }
+            
           </Form>
         </Modal.Body>
       </Modal>
