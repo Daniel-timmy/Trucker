@@ -134,6 +134,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
   // }, []);
 
   useEffect(() => {
+    if (isContainerVisible !== true) return;
     getEntriesForTrip();
   }, [logsheet.id, showOverlay]);
 
