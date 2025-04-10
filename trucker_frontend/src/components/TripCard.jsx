@@ -171,7 +171,7 @@ useEffect (()=> getDriver(), []);
 
             <Col>
               <Button
-            variant={isSheetsVisible ? "outline-light" : "outline-primary"}
+            variant={isSheetsVisible ? "outline-dark" : "outline-primary"}
             onClick={toggleSheetsVisibility(trip)}
             style={{ fontSize: "0.9em" }}
           >
