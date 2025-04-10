@@ -58,18 +58,16 @@ const TripCard = ({
     if (currentTrip === null) {
       return;
     }
-    setLogLoading(true);
 
     const id = currentTrip.id;
     api
       .get(`logsheets/${id}/trips/`)
       .then((res) => res.data)
       .then((data) => {
-        setLogSheets(data.reverse());
-        setLogLoading(false);
+        setLogsheets(data.reverse());
       })
       .catch((err) => console.log(err))
-      .finally(() => setLogLoading(false));
+      
   };
   
   const setRefueling = async () => {
@@ -89,7 +87,7 @@ setCurrentTrip(trip);
 }
 
 useEffect(()=> {
-if (isSheetsVisible !== true) return;;
+if (isSheetsVisible !== true) return;
 getLogsheets();
 }, [isSheetsVisible]);
 
