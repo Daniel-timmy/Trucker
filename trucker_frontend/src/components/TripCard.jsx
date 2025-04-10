@@ -3,6 +3,7 @@ import { Card, Container, Row, Col, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import api from "../api";
 import { useState, useEffect } from "react";
+import LogCard from "../components/LogCard";
 
 const TripCard = ({
   period,
@@ -20,14 +21,57 @@ const TripCard = ({
   },
   trip,
 }) => {
-  const getCurrentDate = () => {
+    const [isSheetsVisible, setIsSheetsVisible] =  useState(false);
+    const [driver, setDriver] = useState({});
+    const [logsheets, setLogsheets] = useState([]);
+    const [currentTrip, setCurrentTrip] = useState(null);
+    
+    const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed, pad to 2 digits
     const day = String(today.getDate()).padStart(2, "0"); // Pad to 2 digits
     return `${year}-${month}-${day}`; // Returns e.g., "2025-04-05"
   };
+  const getDriver = () => {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    if (!token) {
+      navigate("/login");
+    }
+    const decoded = jwtDecode(token);
+    const tokenExpiration = decoded.exp;
+    const now = Date.now() / 1000;
 
+    if (tokenExpiration < now) {
+      navigate("/login");
+    } else {
+      api
+        .get(`${decoded.user_id}/`)
+        .then((res) => res.data)
+        .then((data) => {
+          setDriver(data);
+        })
+        .catch((err) => console.log(err));
+    }
+  };
+  const getLogsheets = () => {
+    if (currentTrip === null) {
+      return;
+    }
+    setLogLoading(true);
+
+    const id = currentTrip.id;
+    api
+      .get(`logsheets/${id}/trips/`)
+      .then((res) => res.data)
+      .then((data) => {
+        setLogSheets(data.reverse());
+        setLogLoading(false);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setLogLoading(false));
+  };
+  
   const setRefueling = async () => {
     const last_refuel = getCurrentDate();
     const last_refuel_mileage = trip.total_mileage;
@@ -39,6 +83,18 @@ const TripCard = ({
       alert("Refueling set successfully!");
     }
   };
+  const toggleSheetsVisibility = (trip) => {
+setIsSheetsVisible((prev) => !prev );
+setCurrentTrip(trip);
+}
+
+useEffect(()=> {
+if (isSheetsVisible !== true) return;;
+getLogsheets();
+}, [isSheetsVisible]);
+
+useEffect (()=> getDriver(), []);
+
   return (
     <>
       <Card
@@ -116,7 +172,14 @@ const TripCard = ({
             )}
 
             <Col>
-              <Button variant="outline-light">View LogSheets</Button>
+              <Button
+            variant={isSheetsVisible ? "outline-light" : "outline-primary"}
+            onClick={toggleSheetsVisibility(trip)}
+            style={{ fontSize: "0.9em" }}
+          >
+            {isSheetsVisible ? "Hide Sheets" : "Show Sheets"}
+          </Button>
+
             </Col>
           </Row>
         </Container>
@@ -140,6 +203,20 @@ const TripCard = ({
           <h1></h1>
         )}
       </Card>
+      <Container>
+        {isSheetsVisible && logsheets.length > 0 && (
+  <ul>
+    {logsheets.map((logsheet) => (
+      <LogCard
+        key={logsheet.id}
+        logsheet={logsheet}
+        trip={currentTrip}
+        driver={driver}
+      />
+    ))}
+  </ul>
+)}
+      </Container>
     </>
   );
 };
