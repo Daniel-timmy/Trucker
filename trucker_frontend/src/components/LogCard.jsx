@@ -136,7 +136,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
   useEffect(() => {
     if (isContainerVisible !== true) return;
     getEntriesForTrip();
-  }, [logsheet.id, showOverlay]);
+  }, [logsheet.id, showOverlay, isContainerVisible]);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const logSheetRef = useRef(null);
