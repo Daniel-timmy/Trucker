@@ -33,9 +33,12 @@ const TripPage = () => {
       .then((res) => res.data)
       .then((data) => {
         setPastTrip(data);
+        setPloading(false);
       })
-      .catch((err) => alert(err))
-      .finally(setPloading(false));
+      .catch((err) => {
+        alert(err);
+        setPloading(false);
+      });
   };
 
   useEffect(() => {
@@ -67,7 +70,7 @@ const TripPage = () => {
       </div>
       <hr />
 
-      <section style={{ height: "600px" }}>
+      <section style={{ height: "auto" }}>
         {pLoading ? (
           <LoadingIndicator />
         ) : !pastTrip ? (

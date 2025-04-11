@@ -85,7 +85,7 @@ const LogCard = ({ logsheet, trip, driver }) => {
     } catch (error) {
       console.error("Error updating logsheet:", error.response?.data || error);
     } finally {
-      setUpdateLogsheetLoading(false)
+      setUpdateLogsheetLoading(false);
     }
   };
 
@@ -190,10 +190,11 @@ const LogCard = ({ logsheet, trip, driver }) => {
             <strong>Date:</strong> {logsheet.date}
           </span>
           <span>
-            <strong>ID:</strong> {logsheet.id}
+            <strong>ID:</strong>
+            {String(logsheet.id).slice(0, 10)}...
           </span>
           <Button
-            variant={isContainerVisible ? "outline-light" : "outline-primary"}
+            variant={isContainerVisible ? "outline-dark" : "outline-secondary"}
             onClick={toggleContainerVisibility}
             style={{ fontSize: "0.9em" }}
           >
@@ -617,12 +618,13 @@ const LogCard = ({ logsheet, trip, driver }) => {
                 onChange={(e) => setUpdatedRemarks(e.target.value)}
               />
             </Form.Group>
-            { updateLogsheetLoading ? ( <LoadingIndicator />) : (
-      <Button variant="primary" type="submit" className="w-100 mt-3">
-              Save Changes
-            </Button>
-            )  }
-            
+            {updateLogsheetLoading ? (
+              <LoadingIndicator />
+            ) : (
+              <Button variant="primary" type="submit" className="w-100 mt-3">
+                Save Changes
+              </Button>
+            )}
           </Form>
         </Modal.Body>
       </Modal>

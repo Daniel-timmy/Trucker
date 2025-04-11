@@ -6,7 +6,7 @@ import TripCard from "../components/TripCard";
 import LogCard from "../components/LogCard";
 import { Button, Modal, Form } from "react-bootstrap";
 import api from "../api";
-import { ACCESS_TOKEN } from "../constants";
+import { ACCESS_TOKEN, DRIVER } from "../constants";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import LoadingIndicator from "../components/LoadingIndicator";
@@ -83,6 +83,11 @@ const Dashboard = () => {
   };
 
   const getDriver = () => {
+    const driver = localStorage.getItem(DRIVER);
+    if (driver) {
+      setDriver(JSON.parse(driver));
+      return;
+    }
     const token = localStorage.getItem(ACCESS_TOKEN);
     if (!token) {
       navigate("/login");
@@ -99,6 +104,7 @@ const Dashboard = () => {
         .then((res) => res.data)
         .then((data) => {
           setDriver(data);
+          localStorage.setItem(DRIVER, JSON.stringify(data));
         })
         .catch((err) => console.log(err));
     }
