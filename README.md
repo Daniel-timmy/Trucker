@@ -234,16 +234,26 @@ services:
 
 ---
 
-## 🚀 Usage
 
-1. **Enter Trip Details**  
-   Input Current Location, Pickup & Dropoff Locations, and Cycle Hours.
 
-2. **View Route and Logs**  
-   See route map with fueling/rest stops and generated ELD log sheet.
+## 🚀 Usage Guide
 
-3. **Download Logs**  
-   Click **"Download Logs"** to get logs as a PDF.
+1. **Create a Trip**  
+   Start by entering your **Current Location**, **Pickup Location**, **Dropoff Location**, and estimated **Start date** to create a trip.  
+   > **Note:** You can only have **one active trip at a time**. To start a new trip, you must complete or cancel the existing one by changing the status to **complete**. 
+
+2. **Track Daily Activity with Logsheets**  
+   You have a **logsheet per day** to record your activities.  
+   - You can **view and update** only the logsheet for **today’s date**.  
+   - You can **add entries** to today’s logsheet, such as driving, fueling, or rest periods.  
+   - **Future activities cannot be added** to the logsheet.
+
+3. **View Route and Logs**  
+   Visualize your trip with a **route map**, including fueling and rest stops.  
+   Access a **detailed logsheet view** for each active day.
+
+4. **Download Logs**  
+   When needed, click **"Download Logs"** to export your logsheets as a **PDF document** for easy sharing or record-keeping.
 
 ---
 
