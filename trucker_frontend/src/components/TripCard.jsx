@@ -265,7 +265,7 @@ const TripCard = ({
           </Container>
         )
       ) : (
-        <h6>No logsheets for this trip</h6>
+        <h6></h6>
       )}
     </>
   );

@@ -6,7 +6,7 @@ import api from "../api";
 import LoadingIndicator from "../components/LoadingIndicator";
 import Footer from "../components/Footer2";
 import React from "react";
-import { Button } from "react-bootstrap";
+import { Button, Toast } from "react-bootstrap";
 
 const TripPage = () => {
   const [currentTrip, setCurrentTrip] = useState([]);
@@ -46,12 +46,32 @@ const TripPage = () => {
     getPastTrip("completed");
   }, []);
 
+  const [show, setShow] = useState(false);
+
+  // Function to show toast and hide it after 4 seconds
+  const handleShow = () => {
+    setShow(true);
+    setTimeout(() => {
+      setShow(false);
+    }, 4000); // 4000ms = 4 seconds
+    // alert("sdfghj");
+  };
+
   return (
     <>
       <Header />
       <div className="d-flex align-items-center justify-content-between px-5">
         <h2>Current Trip</h2>
-        <Button variant="success" as={Link} to="/trips/create">
+        <Button
+          variant={!currentTrip ? "success" : "secondary"}
+          as={Link}
+          to={!currentTrip ? "/trips/create" : ""}
+          onClick={() => {
+            if (currentTrip) {
+              handleShow();
+            }
+          }}
+        >
           New Trip
         </Button>
       </div>
@@ -83,6 +103,26 @@ const TripPage = () => {
           </ul>
         )}
       </section>
+      <Toast
+        show={show}
+        onClose={() => setShow(false)}
+        style={{
+          position: "fixed",
+          top: "20px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          minWidth: "200px",
+        }}
+        delay={2000}
+        autohide
+      >
+        <Toast.Header>
+          <strong className="me-auto">Notification</strong>
+        </Toast.Header>
+        <Toast.Body className="text-dark fs-5">
+          You can not create a New Trip while you have a trip in progress
+        </Toast.Body>
+      </Toast>
       <Footer />
     </>
   );
