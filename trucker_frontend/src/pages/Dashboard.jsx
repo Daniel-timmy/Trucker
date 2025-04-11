@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer2";
 import TripCard from "../components/TripCard";
 import LogCard from "../components/LogCard";
-import { Button, Modal, Form } from "react-bootstrap";
+import { Button, Modal, Form, Toast } from "react-bootstrap";
 import api from "../api";
 import { ACCESS_TOKEN, DRIVER } from "../constants";
 import { useNavigate } from "react-router-dom";
@@ -121,6 +121,16 @@ const Dashboard = () => {
     }
   }, [currentTrip, showModal]);
 
+  const [show, setShow] = useState(false);
+
+  // Function to show toast and hide it after 4 seconds
+  const handleShow = () => {
+    setShow(true);
+    setTimeout(() => {
+      setShow(false);
+    }, 4000); // 4000ms = 4 seconds
+  };
+
   return (
     <>
       <Header />
@@ -151,7 +161,9 @@ const Dashboard = () => {
             Create LogSheet
           </Button>
         ) : (
-          <Button variant="secondary">Create LogSheet</Button>
+          <Button variant="secondary" onClick={handleShow}>
+            Create LogSheet
+          </Button>
         )}
       </div>
       <hr />
@@ -215,6 +227,26 @@ const Dashboard = () => {
           </Form>
         </Modal.Body>
       </Modal>
+      <Toast
+        show={show}
+        onClose={() => setShow(false)}
+        style={{
+          position: "fixed",
+          top: "20px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          minWidth: "200px",
+        }}
+        delay={2500}
+        autohide
+      >
+        <Toast.Header>
+          <strong className="me-auto">Notification</strong>
+        </Toast.Header>
+        <Toast.Body className="text-dark fs-5">
+          You can not create a New Logsheet for today again.
+        </Toast.Body>
+      </Toast>
     </>
   );
 };

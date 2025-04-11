@@ -113,7 +113,7 @@ const TripPage = () => {
           transform: "translateX(-50%)",
           minWidth: "200px",
         }}
-        delay={2000}
+        delay={2500}
         autohide
       >
         <Toast.Header>
