@@ -261,6 +261,7 @@ const TripCard = ({
                 />
               ))}
             </ul>
+            {logsheets.length === 0 && <h4>No Logsheets for this trip</h4>}
             <hr style={{ border: "2px white solid" }} />
           </Container>
         )
