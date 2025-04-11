@@ -254,6 +254,9 @@ services:
 
 4. **Download Logs**  
    When needed, click **"Download Logs"** to export your logsheets as a **PDF document** for easy sharing or record-keeping.
+   **Demo User**
+   email: ajayitimmy45@gmail.com
+   password: Timileyin
 
 ---
 
